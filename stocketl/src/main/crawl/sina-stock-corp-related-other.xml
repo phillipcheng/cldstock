@@ -32,7 +32,7 @@
 				<lhs value="//div[@id='con02-0']/table[2]/tbody/tr[1]/td"></lhs>
 				<rhs value="null"></rhs>
 			</pageVerify>
-			<csvtransform transformClass="org.cld.etl.csv.MultiRowTablesAsCSV" outputType="byJobMulti">
+			<csvtransform transformClass="org.cldutil.etl.csv.MultiRowTablesAsCSV" outputType="byJobMulti">
 			</csvtransform>
 		</baseBrowseTask>
 	</PrdTask>

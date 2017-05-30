@@ -9,7 +9,7 @@
     <Root level="ERROR">
       <AppenderRef ref="Console"/>
     </Root>
-    <Logger name="org.cld.stock.common.CqIndicators" level="INFO" additivity="false">
+    <Logger name="org.cldutil.stock.common.CqIndicators" level="INFO" additivity="false">
       <AppenderRef ref="Console"/>
     </Logger>
     <Logger name="org.cld" level="DEBUG" additivity="false">

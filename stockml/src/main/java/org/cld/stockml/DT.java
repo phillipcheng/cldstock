@@ -1,4 +1,4 @@
-package org.cld.stockml;
+package org.cldutil.stockml;
 
 import java.util.Arrays;
 import java.util.HashMap;

@@ -1,7 +1,7 @@
-package org.cld.stockmlscala.test
+package org.cldutil.stockmlscala.test
 
 import org.scalatest.FunSuite
-import org.cld.stockmlscala._
+import org.cldutil.stockmlscala._
 
 class TestLRSuite extends FunSuite {
   

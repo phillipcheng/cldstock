@@ -31,7 +31,7 @@
 			<userAttribute name="data1">
 				<value value="//div[@id='quotes_content_left_pnlInsider']/table[1]/tbody/tr/td" toType="externalList" toEntryType="string" optional="true"/>
 			</userAttribute>
-			<csvtransform outputType="byId" transformClass="org.cld.etl.csv.MultiRowTablesAsCSV">
+			<csvtransform outputType="byId" transformClass="org.cldutil.etl.csv.MultiRowTablesAsCSV">
 			</csvtransform>
 			<filter><function>function getDate(q) {
     if (q=='1') return '-03-31'

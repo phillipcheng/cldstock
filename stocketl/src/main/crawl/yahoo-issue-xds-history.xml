@@ -31,7 +31,7 @@
 				<lhs value="//table[@class='yfnc_mod_table_title1']"/>
 				<rhs value="null"/>
 			</pageVerify>
-			<csvtransform transformClass="org.cld.etl.csv.MultiRowTablesAsCSV" outputType="byJobSingle"/>
+			<csvtransform transformClass="org.cldutil.etl.csv.MultiRowTablesAsCSV" outputType="byJobSingle"/>
 		</baseBrowseTask>
 	</PrdTask>
 </Tasks>

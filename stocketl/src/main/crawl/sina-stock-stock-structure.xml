@@ -25,7 +25,7 @@
 			<userAttribute name="data">
 				<value value="//table[contains(@id,'StockStructureNewTable')]/tbody/tr/td" toType="list"/>
 			</userAttribute>
-			<csvtransform transformClass="org.cld.etl.csv.SpreadColTableAsCSV" outputType="byJobSingle"><!-- 1 file -->
+			<csvtransform transformClass="org.cldutil.etl.csv.SpreadColTableAsCSV" outputType="byJobSingle"><!-- 1 file -->
 			</csvtransform>
 		</baseBrowseTask>
 	</PrdTask>

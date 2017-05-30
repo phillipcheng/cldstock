@@ -26,7 +26,7 @@
 			<userAttribute name="RowDateIdx">
 				<value value="0" toType="list" toEntryType="int"/>
 			</userAttribute>
-			<csvtransform outputType="byId" transformClass="org.cld.etl.csv.MultiRowTablesAsCSV"/>
+			<csvtransform outputType="byId" transformClass="org.cldutil.etl.csv.MultiRowTablesAsCSV"/>
 		</baseBrowseTask>
 		<!-- just use default 3 month 
 		<firstPageClickStream>

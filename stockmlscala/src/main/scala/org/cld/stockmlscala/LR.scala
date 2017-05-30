@@ -1,4 +1,4 @@
-package org.cld.stockmlscala
+package org.cldutil.stockmlscala
 
 import org.apache.spark.{SparkConf, SparkContext}
 import org.apache.spark.rdd.RDD

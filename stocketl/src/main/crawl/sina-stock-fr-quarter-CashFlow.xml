@@ -31,7 +31,7 @@
 				<rhs value="null">
 				</rhs>
 			</pageVerify>
-			<csvtransform transformClass="org.cld.etl.csv.SpreadColTableAsCSV" outputType="byJobSingle">
+			<csvtransform transformClass="org.cldutil.etl.csv.SpreadColTableAsCSV" outputType="byJobSingle">
 			</csvtransform>
 			<filter byDate="true"><function>function getDate(q) {
     if (q=='1') return '-03-31'

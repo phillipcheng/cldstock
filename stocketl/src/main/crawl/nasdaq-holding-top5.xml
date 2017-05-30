@@ -29,7 +29,7 @@
 			<userAttribute name="data2">
 				<value value="//div[@id='topinsiders']/../following-sibling::div[1]/div[1]/table/tbody/tr/th[1]|//div[@id='topinsiders']/../following-sibling::div[1]/div[1]/table/tbody/tr/td" toType="list" toEntryType="string" optional="true"/>
 			</userAttribute>
-			<csvtransform outputType="byJobMulti" transformClass="org.cld.etl.csv.MultiRowTablesAsCSV">
+			<csvtransform outputType="byJobMulti" transformClass="org.cldutil.etl.csv.MultiRowTablesAsCSV">
 			</csvtransform>
 		</baseBrowseTask>
 	</PrdTask>

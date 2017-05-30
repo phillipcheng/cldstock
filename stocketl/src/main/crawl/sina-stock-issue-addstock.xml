@@ -31,7 +31,7 @@
 				<rhs value="null">
 				</rhs>
 			</pageVerify>
-			<csvtransform transformClass="org.cld.etl.csv.MultiRowTablesAsCSV" outputType="byJobSingle"/>
+			<csvtransform transformClass="org.cldutil.etl.csv.MultiRowTablesAsCSV" outputType="byJobSingle"/>
 		</baseBrowseTask>
 		<nextPage value="(//a[text()='Next'])[1]" optional="true"/>
 		<lastPageCondition>

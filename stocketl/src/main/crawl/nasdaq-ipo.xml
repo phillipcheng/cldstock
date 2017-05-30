@@ -24,7 +24,7 @@
 				<lhs value="//div[@class='genTable']/table/tbody"/>
 				<rhs value="null"/>
 			</pageVerify>
-			<csvtransform transformClass="org.cld.etl.csv.MultiRowTablesAsCSV" outputType="byId">
+			<csvtransform transformClass="org.cldutil.etl.csv.MultiRowTablesAsCSV" outputType="byId">
 			</csvtransform>
 		</baseBrowseTask>
 	</PrdTask>

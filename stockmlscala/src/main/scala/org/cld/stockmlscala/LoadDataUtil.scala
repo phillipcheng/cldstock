@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.cld.stockmlscala
+package org.cldutil.stockmlscala
 
 import scala.collection.mutable
 import scala.language.reflectiveCalls

@@ -1,4 +1,4 @@
-package org.cld.stockmlscala
+package org.cldutil.stockmlscala
 
 import org.apache.spark.sql.{SQLContext, DataFrame}
 import org.apache.spark.ml.util.MetadataUtils

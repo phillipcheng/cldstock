@@ -12,4 +12,4 @@ echo $CL
 
 
 #all
-java -Xmx4g -cp "$CL" org.cld.hadooputil.DumpHdfsFile $1 $2 $3 $4 $5 $6
+java -Xmx4g -cp "$CL" org.cldutil.hadooputil.DumpHdfsFile $1 $2 $3 $4 $5 $6

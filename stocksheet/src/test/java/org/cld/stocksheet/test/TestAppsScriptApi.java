@@ -1,4 +1,4 @@
-package org.cld.stocksheet.test;
+package org.cldutil.stocksheet.test;
 
 import java.io.IOException;
 import java.util.List;
@@ -12,11 +12,11 @@ import javax.management.remote.JMXServiceURL;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.cld.stock.strategy.persist.RangeEntry;
-import org.cld.stock.strategy.persist.StrategyPersistMgr;
-import org.cld.stocksheet.AppsScriptApi;
-import org.cld.stocksheet.SheetMgr;
-import org.cld.trade.mgmt.AutoTraderMXBean;
+import org.cldutil.stock.strategy.persist.RangeEntry;
+import org.cldutil.stock.strategy.persist.StrategyPersistMgr;
+import org.cldutil.stocksheet.AppsScriptApi;
+import org.cldutil.stocksheet.SheetMgr;
+import org.cldutil.trade.mgmt.AutoTraderMXBean;
 import org.junit.Test;
 
 public class TestAppsScriptApi {

@@ -22,7 +22,7 @@
 			<userAttribute name="DataType1">
 				<value value="Text,Date,Number,Number,Date,Date,Date" toType="list" toEntryType="string"/>
 			</userAttribute>
-			<csvtransform transformClass="org.cld.etl.csv.MultiRowTablesAsCSV" outputType="byJobSingle">
+			<csvtransform transformClass="org.cldutil.etl.csv.MultiRowTablesAsCSV" outputType="byJobSingle">
 				<ops>
 					<expression>
 						function getId(str) {

@@ -1,9 +1,9 @@
-package org.cld.stocksheet;
+package org.cldutil.stocksheet;
 
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.cld.util.jdbc.DBConnConf;
+import org.cldutil.util.jdbc.DBConnConf;
 
 public class SheetMgr {
 

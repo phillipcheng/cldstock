@@ -21,7 +21,7 @@
 			<userAttribute name="HasHeader">
 				<value value="false" toType="boolean"/>
 			</userAttribute>
-			<csvtransform outputType="byId" transformClass="org.cld.etl.csv.MultiRowTablesAsCSV"/>
+			<csvtransform outputType="byId" transformClass="org.cldutil.etl.csv.MultiRowTablesAsCSV"/>
 		</baseBrowseTask>
 	</PrdTask>
 </Tasks>

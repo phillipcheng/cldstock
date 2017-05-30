@@ -23,7 +23,7 @@
 			<userAttribute name="RowDateIdx">
 				<value value="3" toType="list" toEntryType="int"/>
 			</userAttribute>
-			<csvtransform outputType="byId" reverse="true" transformClass="org.cld.etl.csv.MultiRowTablesAsCSV">
+			<csvtransform outputType="byId" reverse="true" transformClass="org.cldutil.etl.csv.MultiRowTablesAsCSV">
 			</csvtransform>
 		</baseBrowseTask>
 	</PrdTask>

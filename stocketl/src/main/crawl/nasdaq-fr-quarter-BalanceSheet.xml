@@ -22,7 +22,7 @@
 			<userAttribute name="data">
 				<value value="//div[@id='financials-iframe-wrap']/div[1]/table[1]/thead/tr/th[position()>2]|//div[@id='financials-iframe-wrap']/div[1]/table[1]/tbody/tr/td[position()>1]" toType="list" toEntryType="string" optional="true"/>
 			</userAttribute>
-			<csvtransform outputType="byId" reverse="true" transformClass="org.cld.etl.csv.SpreadColTableAsCSV">
+			<csvtransform outputType="byId" reverse="true" transformClass="org.cldutil.etl.csv.SpreadColTableAsCSV">
 			</csvtransform>
 			<filter><function>function getDate(q) {
     if (q=='1') return '-03-31'

@@ -23,7 +23,7 @@
 			<userAttribute name="RowCsvName">
 				<value value="CorpManager" toType="string"/>
 			</userAttribute>
-			<csvtransform transformClass="org.cld.etl.csv.ColTableRowTableAsCSV" outputType="byJobMulti">
+			<csvtransform transformClass="org.cldutil.etl.csv.ColTableRowTableAsCSV" outputType="byJobMulti">
 			</csvtransform>
 		</baseBrowseTask>
 	</PrdTask>

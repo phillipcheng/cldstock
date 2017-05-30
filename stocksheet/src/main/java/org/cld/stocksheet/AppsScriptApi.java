@@ -1,4 +1,4 @@
-package org.cld.stocksheet;
+package org.cldutil.stocksheet;
 import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.extensions.java6.auth.oauth2.AuthorizationCodeInstalledApp;
 import com.google.api.client.extensions.jetty.auth.oauth2.LocalServerReceiver;
@@ -17,12 +17,12 @@ import java.util.TimeZone;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.cld.stock.strategy.persist.RangeEntry;
-import org.cld.stock.strategy.select.Range;
-import org.cld.trade.AutoTrader;
-import org.cld.trade.TradeKingConnector;
-import org.cld.trade.evt.MarketStatusType;
-import org.cld.trade.response.Quote;
+import org.cldutil.stock.strategy.persist.RangeEntry;
+import org.cldutil.stock.strategy.select.Range;
+import org.cldutil.trade.AutoTrader;
+import org.cldutil.trade.TradeKingConnector;
+import org.cldutil.trade.evt.MarketStatusType;
+import org.cldutil.trade.response.Quote;
 
 import com.google.api.services.script.model.*;
 import com.google.api.services.script.Script;

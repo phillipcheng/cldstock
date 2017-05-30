@@ -65,7 +65,7 @@
 	    	<version>1.0.0</version>
 	    	<exclusions>
 	    		<exclusion>
-	    			<groupId>org.cld.hadooputils</groupId>
+	    			<groupId>org.cldutil.hadooputils</groupId>
 	          		<artifactId>cld-hadooputil</artifactId>
 	        	</exclusion>
     			<exclusion>

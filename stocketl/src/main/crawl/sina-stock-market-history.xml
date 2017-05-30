@@ -29,7 +29,7 @@
 				<value value="0" toType="list" toEntryType="int"/>
 				<!-- 日期 -->
 			</userAttribute>
-			<csvtransform transformClass="org.cld.etl.csv.MultiRowTablesAsCSV" outputType="byJobSingle">
+			<csvtransform transformClass="org.cldutil.etl.csv.MultiRowTablesAsCSV" outputType="byJobSingle">
 			</csvtransform>
 		</baseBrowseTask>
 		<totalPage value="1" toType="int"/>

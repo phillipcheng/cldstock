@@ -27,7 +27,7 @@
 				<lhs value="//span[@id='two_column_main_content_lreportlink1']"/>
 				<rhs value="null"/>
 			</pageVerify>
-			<csvtransform outputType="byJobSingle" transformClass="org.cld.etl.csv.MultiRowTablesAsCSV">
+			<csvtransform outputType="byJobSingle" transformClass="org.cldutil.etl.csv.MultiRowTablesAsCSV">
 				<ops>
 					<expression>
 						<!-- match the last pair of paranthese -->

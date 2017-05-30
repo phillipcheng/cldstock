@@ -21,7 +21,7 @@
 			<userAttribute name="data">
 				<value value="//table[@id='Table1']/tbody/tr[count(td)=2]/td[2]" toType="list"/>
 			</userAttribute>
-			<csvtransform transformClass="org.cld.etl.csv.SpreadColTableAsCSV" outputType="byId">
+			<csvtransform transformClass="org.cldutil.etl.csv.SpreadColTableAsCSV" outputType="byId">
 				<ops>
 					<expression>
 						function getPercentage(str) {

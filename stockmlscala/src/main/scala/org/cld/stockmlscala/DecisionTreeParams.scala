@@ -1,4 +1,4 @@
-package org.cld.stockmlscala
+package org.cldutil.stockmlscala
 
 class DecisionTreeParams (
       _input: String = null,

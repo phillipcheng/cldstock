@@ -31,7 +31,7 @@
 			<userAttribute name="keyData">
 				<value value="//table[@id='comInfo1']/tbody/tr/td[1]" toEntryType="string" toType="list"/>
 			</userAttribute>
-			<csvtransform transformClass="org.cld.etl.csv.SpreadColTableAsCSV" outputType="byJobSingle"/>
+			<csvtransform transformClass="org.cldutil.etl.csv.SpreadColTableAsCSV" outputType="byJobSingle"/>
 		</baseBrowseTask>
 	</PrdTask>
 </Tasks>

@@ -33,7 +33,7 @@
 			<userAttribute name="data">
 				<value value="//table[@class='ipos']/tbody/tr[position()>5][@bgcolor!='']/td[position()>1]" toType="externalList" toEntryType="string" optional="true"/>
 			</userAttribute>
-			<csvtransform outputType="byId" transformClass="org.cld.etl.csv.CellTableAsCSV">
+			<csvtransform outputType="byId" transformClass="org.cldutil.etl.csv.CellTableAsCSV">
 				<ops>
 					<expression>function getQuarterEndDateFromMonth(qrt) {
     var q = new String(qrt)

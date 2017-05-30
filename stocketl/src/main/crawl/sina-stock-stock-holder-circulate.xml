@@ -38,7 +38,7 @@
 			<userAttribute name="RowDataType">
 				<value value="Text" toType="string"/>
 			</userAttribute>
-			<csvtransform transformClass="org.cld.etl.csv.ColTableRowTableAsCSV" outputType="byJobMulti"><!-- 1 file -->
+			<csvtransform transformClass="org.cldutil.etl.csv.ColTableRowTableAsCSV" outputType="byJobMulti"><!-- 1 file -->
 			</csvtransform>
 			<filter><function>function getDate(q) {
     if (q=='1') return '-03-31'

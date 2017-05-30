@@ -30,7 +30,7 @@
 				<lhs value="//table[@id='sharebonus_2']/tbody/tr"></lhs>
 				<rhs value="null"></rhs>
 			</pageVerify>
-			<csvtransform transformClass="org.cld.etl.csv.MultiRowTablesAsCSV" outputType="byJobMulti">
+			<csvtransform transformClass="org.cldutil.etl.csv.MultiRowTablesAsCSV" outputType="byJobMulti">
 			</csvtransform>
 		</baseBrowseTask>
 	</PrdTask>

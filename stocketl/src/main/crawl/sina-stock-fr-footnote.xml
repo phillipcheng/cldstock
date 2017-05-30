@@ -82,7 +82,7 @@
 			<userAttribute name="ColNum7">
 				<value value="count(//div[@id='con03-5']/table[3]/tbody[1]/tr[1]/td)" toType="int"/>
 			</userAttribute>
-			<csvtransform transformClass="org.cld.etl.csv.MultiVarRowTablesToCSV" outputType="byJobMulti">
+			<csvtransform transformClass="org.cldutil.etl.csv.MultiVarRowTablesToCSV" outputType="byJobMulti">
 			</csvtransform>
 			<filter><function>function getDate(q) {
     if (q=='1') return '-03-31'

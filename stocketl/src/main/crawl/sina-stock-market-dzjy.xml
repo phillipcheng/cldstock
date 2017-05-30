@@ -24,7 +24,7 @@
 				<lhs value="//table[@id='dataTable']/thead[2]/tr/td"></lhs>
 				<rhs value="null"></rhs>
 			</pageVerify>
-			<csvtransform transformClass="org.cld.etl.csv.MultiRowTablesAsCSV" outputType="byId">
+			<csvtransform transformClass="org.cldutil.etl.csv.MultiRowTablesAsCSV" outputType="byId">
 			</csvtransform>
 		</baseBrowseTask>
 		<nextPage optional="true" value="//div[@class='pages']/a[last()]">

@@ -23,7 +23,7 @@
 			<userAttribute name="data2">
 				<value value="//div[@id='holders-stacked']/following-sibling::div[1]/div[1]/table/tbody/tr/td" toType="list" toEntryType="string" optional="true"/>
 			</userAttribute>
-			<csvtransform outputType="byJobMulti" transformClass="org.cld.etl.csv.MultiColTablesAsCSV">
+			<csvtransform outputType="byJobMulti" transformClass="org.cldutil.etl.csv.MultiColTablesAsCSV">
 			</csvtransform>
 		</baseBrowseTask>
 	</PrdTask>

@@ -22,7 +22,7 @@
 			<userAttribute name="data1">
 				<value value="//table[@id='CompanylistResults']/tbody/tr[count(td)>4]/td[not(@style) or @style!='display:none']" toType="externalList" toEntryType="string" optional="true"/>
 			</userAttribute>
-			<csvtransform outputType="byJobSingle" reverse="true" transformClass="org.cld.etl.csv.MultiRowTablesAsCSV">
+			<csvtransform outputType="byJobSingle" reverse="true" transformClass="org.cldutil.etl.csv.MultiRowTablesAsCSV">
 			</csvtransform>
 		</baseBrowseTask>
 		<nextPage value="//div[@id='pagerContainer']/ul/li[last()-1]/a" optional="true"/>

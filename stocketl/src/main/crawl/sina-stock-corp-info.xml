@@ -18,7 +18,7 @@
 				<Token value="[0-9]+" name="id" type="regexp"/>
 				<Token value=".phtml" name="suffix" type="string"/>
 			</idUrlMapping>
-			<csvtransform transformClass="org.cld.etl.csv.SpreadColTableAsCSV" outputType="byJobSingle">
+			<csvtransform transformClass="org.cldutil.etl.csv.SpreadColTableAsCSV" outputType="byJobSingle">
 			</csvtransform>
 		</baseBrowseTask>
 	</PrdTask>

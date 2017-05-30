@@ -22,7 +22,7 @@
 			<userAttribute name="data1">
 				<value value="//table[@id='AfterHoursPagingContents_Table']/tbody/tr/td" toType="list" toEntryType="string" optional="true"/>
 			</userAttribute>
-			<csvtransform outputType="byId" transformClass="org.cld.etl.csv.MultiRowTablesAsCSV" reverse="true">
+			<csvtransform outputType="byId" transformClass="org.cldutil.etl.csv.MultiRowTablesAsCSV" reverse="true">
 			</csvtransform>
 			<nextTask>
 				<condition>
@@ -53,7 +53,7 @@
 			<userAttribute name="data1">
 				<value value="//table[@id='AfterHoursPagingContents_Table']/tbody/tr/td" toType="externalList" toEntryType="string"/>
 			</userAttribute>
-			<csvtransform transformClass="org.cld.etl.csv.MultiRowTablesAsCSV"/>
+			<csvtransform transformClass="org.cldutil.etl.csv.MultiRowTablesAsCSV"/>
 		</baseBrowseTask>
 		<nextPage value="//ul[@id='pager']/ul[1]/li[last()-1]/a" optional="true"/>
 		<lastPageCondition>

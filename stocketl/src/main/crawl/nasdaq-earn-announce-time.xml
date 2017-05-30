@@ -20,7 +20,7 @@
 			<userAttribute name="data1">
 				<value value="//p/table/tbody/tr/td/table/tbody/tr[position()>2]/td[position()&lt;4]" toType="list" toEntryType="string" optional="true"/>
 			</userAttribute>
-			<csvtransform outputType="byJobSingle" transformClass="org.cld.etl.csv.MultiRowTablesAsCSV">
+			<csvtransform outputType="byJobSingle" transformClass="org.cldutil.etl.csv.MultiRowTablesAsCSV">
 				<ops>
 					<expression>
 						sarr = arr.split(",")

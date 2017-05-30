@@ -12,4 +12,4 @@ echo $CL
 
 
 #all
-java -Xmx4g -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/data/reminder -cp "$CL:$HBASE_HOME/conf" org.cld.stock.StockCrawlScheduler 
+java -Xmx4g -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/data/reminder -cp "$CL:$HBASE_HOME/conf" org.cldutil.stock.StockCrawlScheduler 

@@ -24,7 +24,7 @@
 			<userAttribute name="DataType1">
 				<value value="Date,Text" toType="list" toEntryType="string"/>
 			</userAttribute>
-			<csvtransform transformClass="org.cld.etl.csv.MultiRowTablesAsCSV" outputType="byId"/>
+			<csvtransform transformClass="org.cldutil.etl.csv.MultiRowTablesAsCSV" outputType="byId"/>
 		</baseBrowseTask>
 		<nextPage value="//div[@id='con02-7']/table[2]/tbody/tr/td[2]/div[last()]/a[text()='下一页']" optional="true"/>
 		<lastPageCondition>

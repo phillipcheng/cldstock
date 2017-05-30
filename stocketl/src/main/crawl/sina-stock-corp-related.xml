@@ -27,7 +27,7 @@
 			<userAttribute name="RowCsvName">
 				<value value="securities,indices,xis" toType="list" toEntryType="string"/>
 			</userAttribute>
-			<csvtransform transformClass="org.cld.etl.csv.MultiRowTablesAsCSV" outputType="byJobMulti">
+			<csvtransform transformClass="org.cldutil.etl.csv.MultiRowTablesAsCSV" outputType="byJobMulti">
 			</csvtransform>
 		</baseBrowseTask>
 	</PrdTask>

@@ -29,7 +29,7 @@
 			<userAttribute name="RowDateIdx">
 				<value value="2" toType="list" toEntryType="int"/>
 			</userAttribute>
-			<csvtransform outputType="byId" transformClass="org.cld.etl.csv.MultiRowTablesAsCSV">
+			<csvtransform outputType="byId" transformClass="org.cldutil.etl.csv.MultiRowTablesAsCSV">
 			</csvtransform>
 		</baseBrowseTask>
 		<nextPage value="//ul[@id='pager']/ul[1]/li[last()-1]/a" optional="true"/>
