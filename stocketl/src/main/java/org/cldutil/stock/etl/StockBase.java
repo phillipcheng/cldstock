@@ -87,7 +87,7 @@ public abstract class StockBase extends TestBase{
 		this.propFile = propFile;
 		this.startDate = sd;
 		this.endDate = ed;
-		dsm = this.cconf.getDsm(CrawlConf.crawlDsManager_Value_Hbase);
+		dsm = this.cconf.getDefaultDsm();
 		hdfsDsm = (HdfsDataStoreManagerImpl) this.cconf.getDsm(CrawlConf.crawlDsManager_Value_Hdfs);
 	}
 	
@@ -208,7 +208,9 @@ public abstract class StockBase extends TestBase{
 				cs.getJsMap().put(jobId, 4);//PREPARE
 			}
 		}
-		dsm.addUpdateCrawledItem(cs, null);
+		if (dsm!=null){
+			dsm.addUpdateCrawledItem(cs, null);
+		}
 		return cs;
 	}
 	

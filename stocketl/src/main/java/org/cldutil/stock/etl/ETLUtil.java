@@ -125,7 +125,7 @@ public class ETLUtil {
 	 * @param: cmd used to decide whether returned trimmed id or not, default no trimmed, can be null
 	 */
 	public static String[] getStockIdByMarketId(ETLConfig sc, String marketId, CrawlConf cconf, String cmd){
-		CrawledItem ci = cconf.getDsm("hbase").getCrawledItem(marketId, sc.getStockIdsCmd(), null);
+		CrawledItem ci = cconf.getDefaultDsm().getCrawledItem(marketId, sc.getStockIdsCmd(), CrawledItem.class);
 		List<String> ids = (List<String>) ci.getParam(StockBase.KEY_IDS);
 		String[] idarray = new String[ids.size()];
 		for (int i=0; i<ids.size(); i++){

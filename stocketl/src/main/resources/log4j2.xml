@@ -10,17 +10,11 @@
       <AppenderRef ref="Console"/>
     </Root>
     
-    <Logger name="org.cld" level="INFO" additivity="false">
+    <Logger name="org.cldutil" level="INFO" additivity="false">
       <AppenderRef ref="Console"/>
     </Logger>
     
     <Logger name="org.xml.mytaskdef" level="INFO" additivity="false">
-      <AppenderRef ref="Console"/>
-    </Logger>
-    <Logger name="cy.common" level="WARN" additivity="false">
-      <AppenderRef ref="Console"/>
-    </Logger>
-    <Logger name="cy.crbook" level="WARN" additivity="false">
       <AppenderRef ref="Console"/>
     </Logger>
     

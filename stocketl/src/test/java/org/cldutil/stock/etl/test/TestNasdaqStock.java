@@ -20,8 +20,8 @@ public class TestNasdaqStock {
 	private static Logger logger =  LogManager.getLogger(TestNasdaqStock.class);
 	
 	public static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-	private static String START_DATE = "2014-11-01";
-	private static String END_DATE = "2015-10-17";
+	private static String START_DATE = "2016-01-01";
+	private static String END_DATE = "2017-08-01";
 	private static Date startDate=null;
 	private static Date endDate = null;
 	static{
@@ -56,7 +56,7 @@ public class TestNasdaqStock {
 	}
 	@Test
 	public void testIdsCmd() throws Exception{
-		nsb.runCmd(NasdaqETLConfig.STOCK_IDS, marketId, null, "2015-10-17");
+		nsb.runCmd(NasdaqETLConfig.STOCK_IDS, NasdaqETLConfig.MarketId_NASDAQ, null, END_DATE);
 	}
 	@Test
 	public void testRunAllCmd() throws Exception{
@@ -71,16 +71,13 @@ public class TestNasdaqStock {
 	}
 	
 	@Test
-	public void testRunCmd1() throws Exception{
-		nsb.runCmd(NasdaqETLConfig.BALANCE_SHEET, marketId, sdf.format(startDate), sdf.format(endDate));
+	public void testBrowseIdlist() throws Exception{
+		nsb.run_browse_idlist(NasdaqETLConfig.MarketId_NASDAQ, sdf.parse("2015-08-02"));
 	}
 	
 	@Test
-	public void testBrowseIdlist() throws Exception{nsb.run_browse_idlist(NasdaqETLConfig.MarketId_NASDAQ, sdf.parse("2015-08-02"));}
-	
-	@Test
 	public void testIPO() throws Exception{
-		nsb.runCmd(NasdaqETLConfig.STOCK_IPO, marketId, null, "2015-10-09");
+		nsb.runCmd(NasdaqETLConfig.STOCK_IPO, marketId, null, "2001-10-09");
 	}
 	@Test
 	public void testCmd_QuoteFq() throws Exception{
@@ -116,11 +113,11 @@ public class TestNasdaqStock {
 	}
 	@Test
 	public void testCmd_EarnAnnounce(){
-		nsb.runCmd(NasdaqETLConfig.EARN_ANNOUNCE, marketId, "2015-11-01", "2015-11-03");
+		nsb.runCmd(NasdaqETLConfig.EARN_ANNOUNCE, marketId, "2017-08-03", "2017-08-04");
 	}
 	@Test
 	public void testCmd_EarnAnnounceTime(){
-		nsb.runCmd(NasdaqETLConfig.EARN_ANNOUNCE_TIME, marketId, "2015-11-01", "2015-11-03");
+		nsb.runCmd(NasdaqETLConfig.EARN_ANNOUNCE_TIME, marketId, "2017-08-03", "2017-08-04");
 	}
 	@Test
 	public void testCmd_Fr_QuarterlyIncomeStatement(){

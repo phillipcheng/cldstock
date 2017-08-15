@@ -1,24 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Tasks xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="C:\mydoc\myprojects\ereminder\Reminder\modules\shopping\src\main\resources\Task_2_0.xsd" rootVolume="999990" storeId="nasdaq-earn-announce-time" productType="default">
 	<PrdTask tryPattern="false">
-		<baseBrowseTask enableJS="false" dsm="nothing" taskName="nasdaq-earn-announce-time" mbMemoryNeeded="1024">
+		<baseBrowseTask enableJS="false" dsm="hdfs" taskName="nasdaq-earn-announce-time" mbMemoryNeeded="1024">
 			<param name="marketId" type="string"/>
 			<param name="startDate" type="string"/>
 			<param name="endDate" type="string"/>
 			<param name="date" type="string"/>
 			<param name="HasHeader" type="boolean" value="false"/>
-			<startUrl value='"http://biz.yahoo.com/research/earncal/" + date.replace(/-/g, "") + ".html"' fromType="expression"/>
+			<startUrl value="https://finance.yahoo.com/calendar/earnings?day=[date]"/>
 			<userAttribute name="id">
 				<value value="'nasdaq-earn-announce-time_' + date" fromType="expression"/>
 			</userAttribute>
 			<userAttribute name="ColNum">
-				<value value="3" toType="list" toEntryType="int"/>
+				<value value="6" toType="list" toEntryType="int"/>
 			</userAttribute>
 			<userAttribute name="DataType1">
-				<value value="Text,Text,Text" toType="list" toEntryType="string"/>
+				<value value="Text,Text,Text,Number,Number,Number" toType="list" toEntryType="string"/>
 			</userAttribute>
 			<userAttribute name="data1">
-				<value value="//p/table/tbody/tr/td/table/tbody/tr[position()>2]/td[position()&lt;4]" toType="list" toEntryType="string" optional="true"/>
+				<value value="//div[@id='fin-cal-table']/div[2]/table/tbody/tr/td[position()>1]" toType="list" toEntryType="string" optional="true"/>
 			</userAttribute>
 			<csvtransform outputType="byJobSingle" transformClass="org.cldutil.etl.csv.MultiRowTablesAsCSV">
 				<ops>

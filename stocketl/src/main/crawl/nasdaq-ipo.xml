@@ -14,8 +14,8 @@
 			<userAttribute name="ColNum">
 				<value value="7" toType="list" toEntryType="int"/>
 			</userAttribute>
-			<userAttribute name="data1">
-				<value value="//div[@class='genTable']/table/tbody/tr/td" optional="true" toType="list"/>
+			<userAttribute name="data1"><!-- only left column, on the right there is another table display all the index value -->
+				<value value="//div[@id='left-column-div']//div[@class='genTable']/table/tbody/tr/td" optional="true" toType="list"/>
 			</userAttribute>
 			<userAttribute name="DataType1">
 				<value value="Text,Text,Text,Number,Number,Number,Date" toType="list" toEntryType="string"/>
