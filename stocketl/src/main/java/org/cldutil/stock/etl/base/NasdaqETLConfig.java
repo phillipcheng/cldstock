@@ -3,21 +3,17 @@ package org.cldutil.stock.etl.base;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
-import java.util.TimeZone;
-
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.cldutil.util.FileDataMapper;
 import org.cldutil.util.ListUtil;
 import org.cldutil.util.jdbc.JDBCMapper;
 import org.cldutil.stock.etl.CrawlCmdGroupType;
 import org.cldutil.stock.etl.LaunchableTask;
 import org.cldutil.stock.etl.task.nasdaq.FQPostProcessTask;
 import org.cldutil.stock.etl.task.nasdaq.QuotePostProcessTask;
+import org.cldutil.stock.mapper.ext.NasdaqIPOJDBCMapper;
 
 
 public class NasdaqETLConfig extends ETLConfig{
@@ -66,12 +62,10 @@ public class NasdaqETLConfig extends ETLConfig{
 	//
 	public static final String STOCK_IPO = "nasdaq-ipo";
 	//market
-	//public static final String QUOTE_HISTORY="nasdaq-quote-historical";//start-end, not needed since FQ contains all the info
 	public static final String QUOTE_PREMARKET="nasdaq-quote-premarket";//current day
 	public static final String QUOTE_AFTERHOURS="nasdaq-quote-afterhours";//current day
 	public static final String QUOTE_TICK="nasdaq-quote-tick";//current day
 	public static final String QUOTE_SHORT_INTEREST="nasdaq-quote-short-interest";
-	public static final String QUOTE_FQ_HISTORY="nasdaq-quote-fq-historical";
 	public static final String QUOTE_HISTORY="nasdaq-quote-historical";
 	
 	//issue
@@ -97,6 +91,10 @@ public class NasdaqETLConfig extends ETLConfig{
 	
 	public static final String STOCK_DATA="data";
 	
+	public static final Map<String, JDBCMapper> jdbcMapperMap = new HashMap<String, JDBCMapper>();
+	static{
+		jdbcMapperMap.put(STOCK_IPO, NasdaqIPOJDBCMapper.getInstance());
+	}
 	public static final Map<String, Map<String,String>> cmdTableMap = new HashMap<String, Map<String,String>>();
 	static{
 		//ids
@@ -152,10 +150,6 @@ public class NasdaqETLConfig extends ETLConfig{
 		cmdTableMap.put(QUOTE_SHORT_INTEREST,m);
 		
 		m = new HashMap<String,String>();
-		m.put("NasdaqFqHistory","part");
-		cmdTableMap.put(QUOTE_FQ_HISTORY, m);
-		
-		m = new HashMap<String,String>();
 		m.put("NasdaqHistory","part");
 		cmdTableMap.put(QUOTE_HISTORY, m);
 		
@@ -190,7 +184,6 @@ public class NasdaqETLConfig extends ETLConfig{
 		QUOTE_AFTERHOURS, //4:00PM ET - 8:00PM ET, will be posted 4:15 p.m. ET to 3:30 p.m. ET of the following day
 		QUOTE_TICK, // 9:30AM ET - 4:00PM ET
 		QUOTE_SHORT_INTEREST,
-		QUOTE_FQ_HISTORY,//daily
 		QUOTE_HISTORY,
 	};
 	public static String[] issueConfs = new String[]{
@@ -233,9 +226,7 @@ public class NasdaqETLConfig extends ETLConfig{
 	}
 	
 	public String getCrawlByCmd(String cmd){
-		if (cmd.equals(QUOTE_FQ_HISTORY)){
-			return "yahoo-quote-fq-historical";
-		}else if (cmd.equals(ISSUE_XDIVSPLIT_HISTORY)){
+		if (cmd.equals(ISSUE_XDIVSPLIT_HISTORY)){
 			return "yahoo-issue-xds-history";
 		}else if (cmd.equals(QUOTE_HISTORY)){ 
 			return "google-quote-historical";
@@ -323,6 +314,10 @@ public class NasdaqETLConfig extends ETLConfig{
 	public Map<String, String> getTablesByCmd(String cmd) {
 		return cmdTableMap.get(cmd);
 	}
+	@Override
+	public JDBCMapper getJDBCMapper(String cmd){
+		return jdbcMapperMap.get(cmd);
+	}
 	
 	@Override
 	public Map<LaunchableTask, String[]> getPostProcessMap() {
@@ -343,6 +338,6 @@ public class NasdaqETLConfig extends ETLConfig{
 	}
 	@Override
 	public String[] getUpdateAllCmds() {
-		return new String[]{QUOTE_FQ_HISTORY};
+		return new String[]{};
 	}
 }

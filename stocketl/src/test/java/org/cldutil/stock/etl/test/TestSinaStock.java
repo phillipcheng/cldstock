@@ -3,18 +3,9 @@ package org.cldutil.stock.etl.test;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.cldutil.taskmgr.TaskMgr;
-import org.cldutil.taskmgr.entity.Task;
-import org.cldutil.util.entity.CrawledItem;
 import org.cldutil.stock.common.StockUtil;
-import org.cldutil.stock.config.SinaStockConfig;
-import org.cldutil.stock.etl.StockBase;
 import org.cldutil.stock.etl.base.ETLConfig;
 import org.cldutil.stock.etl.base.SinaETLConfig;
 import org.cldutil.stock.etl.base.SinaStockBase;
@@ -46,7 +37,7 @@ public class TestSinaStock {
 	//private String propFile = "cld-stock-cluster.properties";
 	
 	private SinaStockBase ssb;
-	private ETLConfig etlconfig;
+	private ETLConfig ec;
 
 	public TestSinaStock(){
 		super();
@@ -55,14 +46,12 @@ public class TestSinaStock {
 	@Before
 	public void setUp() throws Exception{
 		ssb = new SinaStockBase(propFile, marketId, startDate, endDate);
-		ssb.getCconf().getHadoopCrawledItemFolder();
-		ssb.getDsm().addUpdateCrawledItem(ssb.run_browse_idlist(this.marketId, sdf.parse(END_DATE)), null);
-		etlconfig = ETLConfig.getETLConfig(StockUtil.SINA_STOCK_BASE);
+		ec = ETLConfig.getETLConfig(StockUtil.SINA_STOCK_BASE);
 	}
 	//
 	@Test
 	public void testInitTestMarket() throws Exception{
-		ssb.getDsm().addUpdateCrawledItem(ssb.run_browse_idlist(this.marketId, sdf.parse(END_DATE)), null);
+		ssb.runIdsCmd(ec, SinaETLConfig.MarketId_HS_Test, sdf.parse(END_DATE));
 	}
 	@Test
 	public void testIPO() throws Exception{
@@ -80,15 +69,15 @@ public class TestSinaStock {
 	}
 	@Test
 	public void tradedetail_postprocess_1() {
-		new TradeDetailPostProcessTask().launch(this.propFile, ssb.getBaseMarketId(), ssb.getCconf(), SinaETLConfig.Test_D1 + "_" + SinaETLConfig.Test_D2, new String[]{});
+		new TradeDetailPostProcessTask().launch(this.propFile, ssb.getMarketId(), ssb.getCconf(), SinaETLConfig.Test_D1 + "_" + SinaETLConfig.Test_D2, new String[]{});
 	}
 	@Test
 	public void testMerge_1() throws Exception{
-		MergeTask.launch(etlconfig, this.propFile, ssb.getBaseMarketId(), ssb.getCconf(), SinaETLConfig.Test_D1 + "_" + SinaETLConfig.Test_D2, null, false);
+		MergeTask.launch(ec, this.propFile, ssb.getMarketId(), ssb.getCconf(), SinaETLConfig.Test_D1 + "_" + SinaETLConfig.Test_D2, null, false);
 	}
 	@Test
 	public void testMRMerge_1() throws Exception{
-		MergeTask.launch(etlconfig, this.propFile, ssb.getBaseMarketId(), ssb.getCconf(), SinaETLConfig.Test_D1 + "_" + SinaETLConfig.Test_D2, null, true);
+		MergeTask.launch(ec, this.propFile, ssb.getMarketId(), ssb.getCconf(), SinaETLConfig.Test_D1 + "_" + SinaETLConfig.Test_D2, null, true);
 	}
 	
 	/***
@@ -98,11 +87,6 @@ public class TestSinaStock {
 	@Test
 	public void run_browse_idlist() throws Exception{
 		ssb.runCmd(SinaETLConfig.SINA_STOCK_IDS, SinaETLConfig.MarketId_HS_A, null, null);
-	}
-	@Test
-	public void testBrowseIdlist_with_st() throws Exception{
-		Date ed = sdf.parse("2015-08-02");
-		ssb.run_browse_idlist(SinaETLConfig.MarketId_HS_A, ed);
 	}
 	@Test
 	public void testBulletin() throws ParseException{

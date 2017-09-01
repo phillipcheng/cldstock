@@ -15,7 +15,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.cldutil.datacrawl.CrawlConf;
 import org.cldutil.datacrawl.CrawlUtil;
-import org.cldutil.datacrawl.test.CrawlTestUtil;
+import org.cldutil.datacrawl.client.CrawlClientUtil;
 import org.cldutil.etl.fci.AbstractCrawlItemToCSV;
 import org.cldutil.taskmgr.hadoop.HadoopTaskLauncher;
 import org.cldutil.util.entity.CrawledItem;

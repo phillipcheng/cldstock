@@ -61,11 +61,11 @@ public class MarketOpenCloseTrdMsg extends TradeMsg {
 		paramMap.put(AbstractCrawlItemToCSV.FN_STARTDATE, startDate);
 		paramMap.put(AbstractCrawlItemToCSV.FN_ENDDATE, endDate);
 		paramMap.put(AbstractCrawlItemToCSV.FN_MARKETID, marketId);
-		paramMap.put(AbstractCrawlItemToCSV.FN_BASEMARKETID, at.getBaseMarketId());
+		/*
 		for (String cmd:crawlCmds){
 			String[] csvs = ETLUtil.runTaskByCmd(sc, marketId, at.getCconf(), at.getCrawlconfProperties(), cmd, paramMap, false);
 			SqlUtil.insertCsvs(at.getCconf().getSmalldbconf(), mapper.get(cmd), csvs);
-		}
+		}*/
 	}
 	/**
 	 *  [market will open]

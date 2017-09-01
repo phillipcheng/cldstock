@@ -14,11 +14,12 @@ import org.cldutil.stock.common.StockUtil;
 import org.cldutil.stock.etl.CrawlCmdGroupType;
 import org.cldutil.stock.etl.LaunchableTask;
 import org.cldutil.stock.persistence.StockPersistMgr;
+import org.cldutil.util.jdbc.JDBCMapper;
 
 public abstract class ETLConfig {
 	protected static Logger logger =  LogManager.getLogger(ETLConfig.class);
 	
-	private String baseMarketId;
+	private String marketId;
 	//
 	public static final String RAW_ROOT="/reminder/items/raw";
 	public static final String MERGE_ROOT="/reminder/items/merge";
@@ -26,7 +27,8 @@ public abstract class ETLConfig {
 	public static final String STRATEGY_ROOT="/reminder/sresult";
 	
 	protected SimpleDateFormat sdf = null;
-	
+	private StockPersistMgr stockMetaStore;
+
 	public abstract String getTestMarketId();
 	
 	public abstract String stockIdMarket2Cmd(String stockid, String cmd);//from the market-stock-ids to the format each cmd needs
@@ -54,19 +56,22 @@ public abstract class ETLConfig {
 	//return the tables this cmd generates, table to file-prefix
 	public abstract Map<String, String> getTablesByCmd(String cmd);
 	public abstract String postImportSql();
+	public abstract JDBCMapper getJDBCMapper(String cmd);
 	
 	public String getCrawlByCmd(String cmd){
 		return cmd;
 	}
-
-	public ETLConfig(String baseMarketId) {
-		this.setBaseMarketId(baseMarketId);
+	
+	public ETLConfig(String marketId) {
+		this.marketId = marketId;
 		sdf = new SimpleDateFormat("yyyy-MM-dd");
+		stockMetaStore = new StockPersistMgr();
+		stockMetaStore.init();
 		//sdf.setTimeZone(this.getTimeZone());
 	}
 	
 	//last update date per stock by cmd
-	public String getStockLUDateByCmd(String cmd){
+	public String getStockLUDateSqlByCmd(String cmd){
 		Map<String, String> map = getTablesByCmd(cmd);
 		String sql = null;
 		if (map!=null){
@@ -114,19 +119,11 @@ public abstract class ETLConfig {
 		String[] ret = new String[ls.size()];
 		return ls.toArray(ret);
 	}
-
-	public String getBaseMarketId() {
-		return baseMarketId;
-	}
-
-	public void setBaseMarketId(String baseMarketId) {
-		this.baseMarketId = baseMarketId;
-	}
 	
 	public static ETLConfig getETLConfig(String stockBase){
 		if (StockUtil.SINA_STOCK_BASE.equals(stockBase)){
 			return new SinaETLConfig(stockBase);
-		}else if (StockUtil.NASDAQ_STOCK_BASE.equals(stockBase)){
+		}else if (StockUtil.NASDAQ_STOCK_BASE.equals(stockBase) || NasdaqETLConfig.MarketId_NASDAQ_Test.equals(stockBase)){
 			return new NasdaqETLConfig(stockBase);
 		}else if (StockUtil.HK_STOCK_BASE.equals(stockBase)){
 			return new HKETLConfig(stockBase);
@@ -134,5 +131,21 @@ public abstract class ETLConfig {
 			logger.error(String.format("stockBase %s not supported.", stockBase));
 			return null;
 		}
+	}
+
+	public String getMarketId() {
+		return marketId;
+	}
+
+	public void setMarketId(String marketId) {
+		this.marketId = marketId;
+	}
+	
+	public StockPersistMgr getStockMetaStore() {
+		return stockMetaStore;
+	}
+
+	public void setStockMetaStore(StockPersistMgr stockMetaStore) {
+		this.stockMetaStore = stockMetaStore;
 	}
 }

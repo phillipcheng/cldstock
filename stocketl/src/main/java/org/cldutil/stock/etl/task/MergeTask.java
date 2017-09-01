@@ -130,7 +130,7 @@ public class MergeTask extends Task implements Serializable{
 	}
 	
 	//return jobId list
-	public static String[] launch(ETLConfig sc, String propfile, String baseMarketId, CrawlConf cconf, String datePart, 
+	public static String[] launch(ETLConfig sc, String propfile, String marketId, CrawlConf cconf, String datePart, 
 			String param, boolean doMR){
 		String[] excludeCmds = null;
 		String[] includeCmds = null;

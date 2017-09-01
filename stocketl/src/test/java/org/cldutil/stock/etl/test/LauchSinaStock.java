@@ -5,8 +5,8 @@ import java.util.Map;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.cldutil.datacrawl.test.TestBase;
 import org.cldutil.taskmgr.hadoop.HadoopTaskLauncher;
+import org.cldutil.datacrawl.client.ClientBase;
 import org.cldutil.stock.etl.base.SinaStockBase;
 import org.cldutil.stock.etl.task.sina.SplitByStockMapper;
 import org.junit.Before;

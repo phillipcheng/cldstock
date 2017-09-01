@@ -15,45 +15,73 @@ import java.util.Set;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.cldutil.datastore.hibernate.HibernatePersistMgr;
 import org.cldutil.util.jdbc.DBConnConf;
 import org.cldutil.util.jdbc.JDBCMapper;
+import org.cldutil.util.jdbc.PersistObject;
 import org.cldutil.util.jdbc.SqlUtil;
-import org.cldutil.util.jdbc.StringJDBCMapper;
+import org.hibernate.Session;
+import org.hibernate.Transaction;
+import org.hibernate.criterion.Property;
+import org.hibernate.criterion.Restrictions;
 
 /**
- * Notes:
- * 1. the date loaded in hbase are treated as is, so if you fetch it from PDT(any) timezone, it is still as is, not converted.
- * @author cheyi
- *
+ * @author Cheng Yi
  */
-public class StockPersistMgr {
+public class StockPersistMgr extends HibernatePersistMgr{
 	private static Logger logger =  LogManager.getLogger(StockPersistMgr.class);
 	private static SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
 	
-	public static List<String> getStockIds(DBConnConf dbconf, String tableName, String subsector, String country){
-		Connection con = null;
-		String sql = null;
-		sql = String.format("select stockid from %s", tableName);
-		String where = " where 1=1 ";
-		if (subsector!=null){
-			where +=String.format(" and subsector='%s'", subsector);
+	private MarketInfo getLatestMarketInfo(String marketId, Session ses){
+		try {
+			List<MarketInfo> results = ses.createCriteria(MarketInfo.class)
+				.add(Restrictions.eq("id.marketId", marketId))
+				.addOrder(Property.forName("id.endDate").desc())
+				.setMaxResults(1)
+				.list();
+			MarketInfo p = null;
+			if (results != null && !results.isEmpty()) {
+				p = (MarketInfo) results.get(0);
+			}
+			return p;
+		} catch (Exception e) {
+			logger.error("", e);
+			return null;
 		}
-		if (country!=null){
-			where +=String.format(" and country='%s'", country);
+	}
+	
+	public MarketInfo getLatestMarketInfo(String marketId){
+		Session ses = hibernateSF.openSession();
+		try {
+			return getLatestMarketInfo(marketId, ses);
+		}finally{
+			if (ses!=null){
+				ses.close();
+			}
 		}
-		sql +=where;
-		try{
-			con = SqlUtil.getConnection(dbconf);
-			List<String> lo = (List<String>) SqlUtil.getObjectsByParam(sql, new Object[]{}, 
-					con, -1, -1, "", StringJDBCMapper.getInstance());
-			return lo;
-		}catch(Exception e){
+	}
+	
+	public Map<String, Date> getStockIPOData(String marketId){
+		Map<String, Date> ipoDateMap = new HashMap<String, Date>();
+		Session ses = hibernateSF.openSession();
+		try {
+			List<StockInfo> results = ses.createCriteria(StockInfo.class)
+				.add(Restrictions.eq("id.marketId", marketId))
+				.list();
+			for (StockInfo si:results){
+				ipoDateMap.put(si.getId().getStockId(), si.getIpoDate());
+			}
+		} catch (Exception e) {
 			logger.error("", e);
 			return null;
 		}finally{
-			SqlUtil.closeResources(con, null);
+			ses.close();
 		}
+		
+		return ipoDateMap;
 	}
+	
+	///////////////////
 	
 	public static void truncateTable(DBConnConf dbconf, String tableName){
 		Connection con = null;
@@ -69,6 +97,7 @@ public class StockPersistMgr {
 			SqlUtil.closeResources(con, null);
 		}
 	}
+	
 	public static void loadData(DBConnConf dbconf, String fileName, String tableName){
 		Connection con = null;
 		Statement stmt = null;
@@ -132,42 +161,6 @@ public class StockPersistMgr {
 		}finally{
 			SqlUtil.closeResources(con, null);
 		}
-	}
-	
-	public static Map<String, Date> getStockIPOData(String ipoTableName, DBConnConf dbconf){
-		Map<String, Date> ipoDateMap = new HashMap<String, Date>();
-		Connection con = null;
-		Statement stmt = null;
-		String query = "";
-		try{
-			con = SqlUtil.getConnection(dbconf);
-			if (con==null)
-				return ipoDateMap;
-			query = String.format("select stockid, dt from %s", ipoTableName);
-			stmt = con.createStatement();
-			ResultSet res = stmt.executeQuery(query);
-			while (res.next()){
-				ResultSetMetaData rsmd = res.getMetaData();
-				try{
-					if (rsmd.getColumnType(2)==Types.DATE){
-						ipoDateMap.put(res.getString(1), res.getDate(2));
-					}
-				}catch(Exception e){
-					try{
-						logger.error(String.format("error converting for stockid:%s, max dt: %s", res.getString(1), res.getString(2)), e);
-					}catch(Exception e1){
-						logger.error("", e1);
-					}
-				}
-			}
-			res.close();
-		}catch(Exception e){
-			logger.error(String.format("exceptin while execute %s", query), e);
-		}finally{
-			SqlUtil.closeResources(con, stmt);
-		}
-		
-		return ipoDateMap;
 	}
 	
 	//get the get last update date query
@@ -250,4 +243,5 @@ public class StockPersistMgr {
 		}
 		return d;
 	}
+	
 }

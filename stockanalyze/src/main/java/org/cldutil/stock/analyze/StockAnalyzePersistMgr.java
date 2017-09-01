@@ -5,8 +5,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStreamReader;
 import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.Statement;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -21,7 +19,6 @@ import org.apache.logging.log4j.Logger;
 import org.cldutil.util.DataMapper;
 import org.cldutil.util.FileDataMapper;
 import org.cldutil.util.FsType;
-import org.cldutil.util.jdbc.DBConnConf;
 import org.cldutil.util.jdbc.JDBCMapper;
 import org.cldutil.util.jdbc.SqlUtil;
 import org.cldutil.stock.common.CandleQuote;
@@ -92,7 +89,7 @@ public class StockAnalyzePersistMgr {
 		return null;
 	}
 	
-	//BTD for back testing data, they are ajusted till a certain-day
+	//BTD:back testing data, they are adjusted till a certain-day
 	private static List<? extends Object> getBTDByStockDate(AnalyzeConf aconf, FileDataMapper fdMapper, String stockId, Date sd, Date ed, TradeHour th){
 		List<Object> lo = new ArrayList<Object>();
 		CqCachedReader ccreader = getReader(aconf, fdMapper, stockId);

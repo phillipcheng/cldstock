@@ -5,6 +5,7 @@ import java.io.FileInputStream;
 import java.io.InputStreamReader;
 import java.lang.reflect.Method;
 import java.sql.Connection;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -13,7 +14,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -24,40 +24,32 @@ import org.apache.hadoop.util.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import org.cldutil.datastore.api.DataStoreManager;
-import org.cldutil.datastore.impl.HdfsDataStoreManagerImpl;
-import org.cldutil.taskmgr.TaskUtil;
-import org.cldutil.taskmgr.entity.CmdStatus;
 import org.cldutil.taskmgr.entity.RunType;
 import org.cldutil.taskmgr.entity.Task;
 import org.cldutil.taskmgr.hadoop.HadoopTaskLauncher;
 import org.cldutil.util.DateTimeUtil;
-import org.cldutil.util.JsonUtil;
 import org.cldutil.util.ListUtil;
 import org.cldutil.util.StringUtil;
 import org.cldutil.util.entity.CrawledItem;
 import org.cldutil.util.entity.CrawledItemId;
 import org.cldutil.util.jdbc.ScriptRunner;
 import org.cldutil.util.jdbc.SqlUtil;
-import org.cldutil.stock.common.StockConfig;
-import org.cldutil.stock.common.StockUtil;
-import org.cldutil.stock.common.TradeHour;
 import org.cldutil.stock.etl.base.ETLConfig;
 import org.cldutil.stock.etl.task.LoadDBDataTask;
 import org.cldutil.stock.etl.task.MergeTask;
-import org.cldutil.stock.strategy.SelectStrategy;
-import org.cldutil.stock.strategy.SellStrategy;
+import org.cldutil.stock.persistence.CmdStatus;
+import org.cldutil.stock.persistence.MarketInfo;
+import org.cldutil.stock.persistence.MarketInfoId;
+import org.cldutil.stock.persistence.StockPersistMgr;
 import org.cldutil.xml.taskdef.BrowseDetailType;
 import org.cldutil.etl.fci.AbstractCrawlItemToCSV;
-import org.cldutil.hadooputil.DefaultCopyTextReducer;
 import org.cldutil.hadooputil.TransferHdfsFile;
 
 import org.cldutil.datacrawl.CrawlConf;
-import org.cldutil.datacrawl.CrawlUtil;
+import org.cldutil.datacrawl.client.ClientBase;
 import org.cldutil.datacrawl.task.BrowseProductTaskConf;
-import org.cldutil.datacrawl.test.TestBase;
 
-public abstract class StockBase extends TestBase{
+public abstract class StockBase extends ClientBase{
 	protected static Logger logger =  LogManager.getLogger(StockBase.class);
 	public static SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
 	
@@ -68,27 +60,24 @@ public abstract class StockBase extends TestBase{
 	public static final char EXCLUDE_MARK='|';
 	public static final char INCLUDE_MARK='+';
 	
-	private String baseMarketId;
 	protected String marketId;
 	protected String propFile;
 	protected Date endDate; //of server timezone, since the static holidays, the dynamic date from hbase are all in server timezone
 	protected Date startDate;
 	protected String specialParam = null;//for special cmd to use as parameter
-	protected DataStoreManager dsm = null;
-	protected HdfsDataStoreManagerImpl hdfsDsm = null;
-
+	private StockPersistMgr spm;
+	
 	public abstract boolean fqReady(Date today);
 
 	public StockBase(String propFile, String baseMarketId, String marketId, Date sd, Date ed, String marketBaseId){
 		super();
-		this.setBaseMarketId(baseMarketId);
 		this.marketId = marketId;
 		super.setProp(propFile);
 		this.propFile = propFile;
 		this.startDate = sd;
 		this.endDate = ed;
-		dsm = this.cconf.getDefaultDsm();
-		hdfsDsm = (HdfsDataStoreManagerImpl) this.cconf.getDsm(CrawlConf.crawlDsManager_Value_Hdfs);
+		this.spm = new StockPersistMgr();
+		this.spm.init();
 	}
 	
 	public String toString(){
@@ -111,68 +100,72 @@ public abstract class StockBase extends TestBase{
 		ciDelta.setCsvValue(csvValue);
 	}
 	
-	public CrawledItem run_browse_idlist(String marketId, Date endDate) throws InterruptedException{
-		ETLConfig sc = ETLConfig.getETLConfig(baseMarketId);
-		CrawledItem ci = null;
-		List<Task> tl = cconf.setUpSite(sc.getStockIdsCmd() + ".xml", null);
-		Task t = tl.get(0);
-		t.initParsedTaskDef();
-		BrowseDetailType bdt = t.getBrowseDetailTask(t.getName()).getBrowsePrdTaskType();
-		t.putParam(AbstractCrawlItemToCSV.FN_BASEMARKETID, this.baseMarketId);
-		BrowseProductTaskConf.evalParams(t, bdt);
-		String storeId = (String) t.getParamMap().get(AbstractCrawlItemToCSV.FN_STOREID);
-		if (sc.getTestMarketId().equals(marketId)){
-			Date marketChangeDate = null;
-			try {
-				marketChangeDate = sdf.parse(sc.getTestMarketChangeDate());
-			}catch(Exception e){
-				logger.error("", e);
-				return null;
-			}
-			if (endDate.before(marketChangeDate)){
-				ci = new CrawledItem(CrawledItem.CRAWLITEM_TYPE, "default", 
-						new CrawledItemId(marketId, sc.getStockIdsCmd(), endDate));
-				ci.addParam(KEY_IDS, Arrays.asList(sc.getTestStockSet1()));
-			}else{
-				ci = new CrawledItem(CrawledItem.CRAWLITEM_TYPE, "default", 
-						new CrawledItemId(marketId, sc.getStockIdsCmd(), endDate));
-				ci.addParam(KEY_IDS, Arrays.asList(sc.getTestStockSet2()));
-			}
-			addCsvValue(ci);
-		}else{
-			Map<String, Object> params = new HashMap<String, Object>();
-			params.put("marketId", marketId);
-			ci = browsePrd(sc.getStockIdsCmd() + ".xml", null, null, params, RunType.onePrd).get(0);
-			logger.debug("ci we got:" + ci);
-			if (sc.getPairedMarket()!=null && sc.getPairedMarket().containsKey(marketId)){
-				String pairMarketId = sc.getPairedMarket().get(marketId);
-				//we need to add the st market as well
-				params.put("marketId", pairMarketId);
-				CrawledItem ciAdd = browsePrd(sc.getStockIdsCmd() + ".xml", null, null, params, RunType.onePrd).get(0);
-				List<String> ids = (List<String>) ciAdd.getParam(KEY_IDS);
-				List<String> idsOrg = (List<String>) ci.getParam(KEY_IDS);
-				idsOrg.addAll(ids);
-				ci.addParam(KEY_IDS, idsOrg);
-			}
-		}
-		ci.addParam(AbstractCrawlItemToCSV.FN_STOREID, storeId);
-		return ci;
-	}
-	
-	//sequentially run tasks
+	/**
+	 * public method for client to invoke directly
+	 * @param cmdName
+	 * @param marketId
+	 * @param startDate: yyyy-MM-dd
+	 * @param endDate: yyyy-MM-dd
+	 * @return
+	 * @throws ParseException 
+	 */
 	public String[] runCmdHadoopless(String cmdName, String marketId, String startDate, String endDate) {
-		logger.info(String.format("runCmdHadoopless cmd:%s, market %s, start %s, end %s.", cmdName, marketId, startDate, endDate));
-		ETLConfig sc = ETLConfig.getETLConfig(baseMarketId);
-		Map<String, Object> params = getDateParamMap(startDate, endDate);
-		params.put(AbstractCrawlItemToCSV.FN_MARKETID, marketId);
-		params.put(AbstractCrawlItemToCSV.FN_BASEMARKETID, baseMarketId);
-		return ETLUtil.runTaskByCmd(sc, marketId, cconf, this.getPropFile(), cmdName, params, false);
+		try {
+			logger.info(String.format("runCmdHadoopless cmd:%s, market %s, start %s, end %s.", cmdName, marketId, startDate, endDate));
+			ETLConfig sc = ETLConfig.getETLConfig(marketId);
+			Map<String, Object> params = getDateParamMap(startDate, endDate);
+			params.put(AbstractCrawlItemToCSV.FN_MARKETID, marketId);
+			Date d = new SimpleDateFormat("yyyy-MM-dd").parse(endDate);
+			MarketInfo mi = (MarketInfo) spm.get(MarketInfo.class, new MarketInfoId(marketId, d));
+			if (mi == null){
+				logger.error(String.format("market info for %s and %s not found.", marketId, d));
+				return null;
+			}else{
+				return ETLUtil.runTaskByCmd(sc, marketId, mi.getStockIds(), cconf, this.getPropFile(), cmdName, params, true);
+			}
+		}catch(Exception e){
+			logger.error("", e);
+			return null;
+		}
 	}
 	
-	//cmdName is the fileName of the site-conf without suffix, is the storeid
+	/**
+	 * public method for client to invoke directly
+	 * @param cmdName
+	 * @param marketId
+	 * @param startDate: yyyy-MM-dd
+	 * @param endDate: yyyy-MM-dd
+	 * @return
+	 */
 	public CmdStatus runCmd(String cmdName, String marketId, String startDate, String endDate) {
+		try {
+			Date d = new SimpleDateFormat("yyyy-MM-dd").parse(endDate);
+			MarketInfo mi = (MarketInfo) spm.get(MarketInfo.class, new MarketInfoId(marketId, d));
+			if (mi == null){
+				logger.error(String.format("market info for %s and %s not found.", marketId, d));
+				return null;
+			}else{
+				return runCmd(cmdName, marketId, mi.getStockIds(), startDate, endDate);
+			}
+		}catch(Exception e){
+			logger.error("", e);
+			return null;
+		}
+	}
+	
+	/**
+	 * 
+	 * @param cmdName: fileName of the site-conf without suffix, also the storeid
+	 * @param marketId
+	 * @param stockids
+	 * @param startDate
+	 * @param endDate
+	 * @param isStatic: true for one time data, store in the metastore
+	 * @return
+	 */
+	private CmdStatus runCmd(String cmdName, String marketId, List<String> stockids, String startDate, String endDate) {
 		logger.info(String.format("runCmd cmd:%s, market %s, start %s, end %s.", cmdName, marketId, startDate, endDate));
-		ETLConfig sc = ETLConfig.getETLConfig(baseMarketId);
+		ETLConfig sc = ETLConfig.getETLConfig(marketId);
 		if (Arrays.asList(sc.getCurrentDayCmds()).contains(cmdName)){
 			//do not need start date for current day cmd, only end date needed for output folder name
 		}else{
@@ -185,7 +178,6 @@ public abstract class StockBase extends TestBase{
 		}
 		Map<String, Object> params = getDateParamMap(startDate, endDate);
 		params.put(AbstractCrawlItemToCSV.FN_MARKETID, marketId);
-		params.put(AbstractCrawlItemToCSV.FN_BASEMARKETID, baseMarketId);
 		Date ed = null;
 		try{
 			if (endDate!=null){
@@ -194,31 +186,24 @@ public abstract class StockBase extends TestBase{
 		}catch(Exception e){
 			logger.error("", e);
 		}
-		CmdStatus cs= null;
-		boolean isStatic = ETLUtil.isStatic(sc, cconf, cmdName);
 		logger.info(String.format("going to run cmd %s with ed:%s, sd:%s, marketId:%s", cmdName, endDate, startDate, marketId));
-		if (isStatic){
-			cs = new CmdStatus(marketId, cmdName, ed, true, sc.getSdf());
-		}else{	
-			cs = new CmdStatus(marketId, cmdName, ed, false, sc.getSdf());
-		}
-		String[] jobIds = ETLUtil.runTaskByCmd(sc, marketId, cconf, this.getPropFile(), cmdName, params, true);
+		CmdStatus cs = new CmdStatus(marketId, cmdName, ed);
+		String[] jobIds = ETLUtil.runTaskByCmd(sc, marketId, stockids, cconf, this.getPropFile(), cmdName, params);
 		for (String jobId:jobIds){
 			if (jobId!=null){
 				cs.getJsMap().put(jobId, 4);//PREPARE
 			}
 		}
-		if (dsm!=null){
-			dsm.addUpdateCrawledItem(cs, null);
-		}
+		spm.addOrUpdate(cs);
 		return cs;
 	}
 	
-	private List<CmdStatus> runCmdGroup(String marketId, Date sd, Date ed, CrawlCmdGroupType groupType, 
+	private List<CmdStatus> runCmdGroup(String marketId, List<String> stockids, Date sd, Date ed, 
+			CrawlCmdGroupType groupType, 
 			CrawlCmdType cmdType, String[] includeCmds, String[] excludeCmds){
 		ETLUtil.cleanCaches();
 		List<CmdStatus> cmdStatusList = new ArrayList<CmdStatus>();
-		ETLConfig sc = ETLConfig.getETLConfig(baseMarketId);
+		ETLConfig sc = ETLConfig.getETLConfig(marketId);
 		String strSd = null;
 		if (sd!=null){
 			strSd = sdf.format(sd);
@@ -243,65 +228,74 @@ public abstract class StockBase extends TestBase{
 			if ((cmdType == CrawlCmdType.nondynamic && isStatic) ||
 					(cmdType == CrawlCmdType.dynamic && !isStatic) ||
 					(cmdType == CrawlCmdType.any)){
-				CmdStatus cs = runCmd(cmd, marketId, strSd, strEd);
+				CmdStatus cs = runCmd(cmd, marketId, stockids, strSd, strEd);
 				if (cs==null){
 					logger.error(String.format("cmdstatus for cmd:%s, market %s, start %s, end %s is null.", cmd, marketId, strSd, strEd));
 				}
 				cmdStatusList.add(cs);
+			}else{
+				logger.error(String.format("cmd isStatic %b, CrawlCmdType:%s, not match", isStatic, cmdType));
 			}
 		}
 		return cmdStatusList;
 	}
 	
-	private void recordCiIds(CrawledItem ciIds){
-		ETLConfig sc = ETLConfig.getETLConfig(baseMarketId);
-		List<String> curIds = (List<String>) ciIds.getParam(KEY_IDS);
-		String storeId = (String) ciIds.getParam(AbstractCrawlItemToCSV.FN_STOREID);
-		logger.info(String.format("market %s 1st time fetch with size %d.", marketId, curIds.size()));
-		dsm.addUpdateCrawledItem(ciIds, null);//hbase persistence for curMarket
-		//
-		String fileName = String.format("raw/%s_%s/%s/data", this.getMarketId(), sdf.format(this.getEndDate()), storeId);
-		hdfsDsm.addCrawledItem(ciIds, null, fileName);//hdfs persistence for curMarket
-		
-		//store the market-id-crawl status
-		CmdStatus mcs = new CmdStatus(marketId, sc.getStockIdsCmd(), endDate, true, sc.getSdf());
-		dsm.addUpdateCrawledItem(mcs, null);
-	}
-	
-	//return all the cmds run
-	private List<CmdStatus> runFirstTime(ETLConfig sc, CrawledItem ciIds, String curMarketId, CrawlCmdGroupType groupType, 
-			String[] includeCmds, String[] excludeCmds) throws InterruptedException {
-		//store the stock-ids for curMarket
-		logger.info(String.format("run first time for market:%s", curMarketId));
-		ciIds.getId().setId(curMarketId);
-		recordCiIds(ciIds);
-		//do the (null, enDate) for the current market
-		return runCmdGroup(curMarketId, startDate, endDate, groupType, CrawlCmdType.any, includeCmds, excludeCmds);
-	}
-	
-	public void runIdsCmd() throws InterruptedException {
-		String strEndDate=sdf.format(endDate);
-		String curMarketId = marketId + idKeySep+ strEndDate;
-		CrawledItem ciIds = null;
-		ciIds = run_browse_idlist(marketId, endDate);
-		ciIds.getId().setId(curMarketId);
-		recordCiIds(ciIds);
-	}
-	private String getCurMarketId(){
-		ETLConfig sc = ETLConfig.getETLConfig(baseMarketId);
-		String strEndDate=sdf.format(endDate);
-		CmdStatus mcs = CmdStatus.getCmdStatus(dsm, marketId, sc.getStockIdsCmd());
-		String curMarketId = marketId + idKeySep+ strEndDate; 
-		if (mcs!=null){
-			curMarketId = marketId + idKeySep + sdf.format(mcs.getId().getCreateTime());
+	private CrawledItem run_browse_idlist(ETLConfig ec, String marketId, Date endDate) throws InterruptedException{
+		if (ec==null){
+			ec = ETLConfig.getETLConfig(marketId);
 		}
-		CrawledItem ci = cconf.getDsm("hbase").getCrawledItem(curMarketId, sc.getStockIdsCmd(), null);
-		if (ci==null){
-			logger.error(String.format("cur market not found."));
-			return null;
+		CrawledItem ci = null;
+		List<Task> tl = cconf.setUpSite(ec.getStockIdsCmd() + ".xml", null);
+		Task t = tl.get(0);
+		t.initParsedTaskDef();
+		BrowseDetailType bdt = t.getBrowseDetailTask(t.getName()).getBrowsePrdTaskType();
+		t.putParam(AbstractCrawlItemToCSV.FN_MARKETID, this.marketId);
+		BrowseProductTaskConf.evalParams(t, bdt);
+		String storeId = (String) t.getParamMap().get(AbstractCrawlItemToCSV.FN_STOREID);
+		if (ec.getTestMarketId().equals(marketId)){
+			Date marketChangeDate = null;
+			try {
+				marketChangeDate = sdf.parse(ec.getTestMarketChangeDate());
+			}catch(Exception e){
+				logger.error("", e);
+				return null;
+			}
+			if (endDate.before(marketChangeDate)){
+				ci = new CrawledItem(CrawledItem.CRAWLITEM_TYPE, "default", 
+						new CrawledItemId(marketId, ec.getStockIdsCmd(), endDate));
+				ci.addParam(KEY_IDS, Arrays.asList(ec.getTestStockSet1()));
+			}else{
+				ci = new CrawledItem(CrawledItem.CRAWLITEM_TYPE, "default", 
+						new CrawledItemId(marketId, ec.getStockIdsCmd(), endDate));
+				ci.addParam(KEY_IDS, Arrays.asList(ec.getTestStockSet2()));
+			}
+			addCsvValue(ci);
 		}else{
-			return curMarketId;
+			Map<String, Object> params = new HashMap<String, Object>();
+			params.put("marketId", marketId);
+			ci = browsePrd(ec.getStockIdsCmd() + ".xml", null, null, params, RunType.onePrd).get(0);
+			logger.debug("ci we got:" + ci);
+			if (ec.getPairedMarket()!=null && ec.getPairedMarket().containsKey(marketId)){
+				String pairMarketId = ec.getPairedMarket().get(marketId);
+				//we need to add the st market as well
+				params.put("marketId", pairMarketId);
+				CrawledItem ciAdd = browsePrd(ec.getStockIdsCmd() + ".xml", null, null, params, RunType.onePrd).get(0);
+				List<String> ids = (List<String>) ciAdd.getParam(KEY_IDS);
+				List<String> idsOrg = (List<String>) ci.getParam(KEY_IDS);
+				idsOrg.addAll(ids);
+				ci.addParam(KEY_IDS, idsOrg);
+			}
 		}
+		ci.addParam(AbstractCrawlItemToCSV.FN_STOREID, storeId);
+		return ci;
+	}
+	
+	public MarketInfo runIdsCmd(ETLConfig ec, String marketId, Date endDate) throws InterruptedException {
+		CrawledItem ciIds = run_browse_idlist(ec, marketId, endDate);
+		List<String> curIds = (List<String>) ciIds.getParam(KEY_IDS);
+		MarketInfo mi = new MarketInfo(marketId, endDate, curIds);
+		spm.addOrUpdate(mi);
+		return mi;
 	}
 
 	public boolean cmdFinished(String jid){
@@ -413,7 +407,7 @@ public abstract class StockBase extends TestBase{
 					cmdStatus.getJsMap().put(jid, newStatusMap.get(jid));
 				}
 				//dsm.addUpdateCrawledItem(cs, null);
-				logger.info(String.format("update status for cmd:%s to %s", cmdStatus.getCmdName(), newStatusMap));
+				logger.info(String.format("update status for cmd:%s to %s", cmdStatus.getId(), newStatusMap));
 			}
 		}
 		return finished;
@@ -450,7 +444,7 @@ public abstract class StockBase extends TestBase{
 		if (!exclude.equals("") && !exclude.equals("-")){
 			excludeArr = exclude.split(",");
 		}
-		LoadDBDataTask.launch(baseMarketId, marketId, cconf.getSmalldbconf(), threadNum, localDataDir, includeArry, excludeArr);
+		LoadDBDataTask.launch(marketId, marketId, cconf.getBigdbconf(), threadNum, localDataDir, includeArry, excludeArr);
 	}
 	
 	//param is null:all, startwith -:exclude these cmd, startwith +:only include these cmd, else group name
@@ -475,99 +469,59 @@ public abstract class StockBase extends TestBase{
 		}
 		
 		List<CmdStatus> cmdStatusList = new ArrayList<CmdStatus>();
-		ETLConfig sc = ETLConfig.getETLConfig(baseMarketId);
+		ETLConfig ec = ETLConfig.getETLConfig(marketId);
 		Date lastRunDate = null;
 		List<String> curIds = null; 
 		List<String> deltaIds = null;
 		String strEndDate=sdf.format(endDate);
 		
-		//get the market-ids-crawl-history
-		CmdStatus mcs = CmdStatus.getCmdStatus(dsm, marketId, sc.getStockIdsCmd());
-		//update the marketId by appending the endDate
-		String curMarketId = marketId + idKeySep+ strEndDate; 
-		//run browse id to see any updates
-		CrawledItem ciIds = null;
+		MarketInfo mi = (MarketInfo) spm.get(MarketInfo.class, new MarketInfoId(marketId, endDate));
 		
-		if (mcs!=null){
-			String prevMarketId = marketId + idKeySep + sdf.format(mcs.getId().getCreateTime());
-			logger.info(String.format("prevMarketId is %s", prevMarketId));
-			if (mcs.getId().getCreateTime().equals(endDate)){//crawl again at the same day, no need to crawl market
-				ciIds = dsm.getCrawledItem(prevMarketId, sc.getStockIdsCmd(), CrawledItem.class);
-				curIds = (List<String>) ciIds.getParam(KEY_IDS);
+		if (mi!=null){//has marketInfo for endDate
+			curIds = (List<String>) mi.getStockIds();
+		}else{
+			//get the latest marketInfo before the endDate, suppose there is no marketInfo after endDate
+			MarketInfo lmi = spm.getLatestMarketInfo(marketId);
+			if (lmi!=null && lmi.getId().getEndDate().after(endDate)){
+				logger.warn(String.format("please use endDate after current which is %s", lmi.getId().getEndDate()));
 			}else{
-				//crawl the ids again
-				ciIds = run_browse_idlist(marketId, endDate);
-				ciIds.getId().setId(curMarketId);
-				curIds = (List<String>) ciIds.getParam(KEY_IDS);
-			}
-			//get latest market-ids-crawl
-			CrawledItem ciPreIds = dsm.getCrawledItem(prevMarketId, sc.getStockIdsCmd(), CrawledItem.class);
-			if (ciPreIds==null){
-				logger.error(String.format("can't find crawledItem for cmd %s on market %s, so run as first time", sc.getStockIdsCmd(), prevMarketId));
-				cmdStatusList.addAll(runFirstTime(sc, ciIds, curMarketId, groupType, includeCmds, excludeCmds));
-			}else{
-				List<String> preIds = (List<String>) ciPreIds.getParam(KEY_IDS);
+				mi = runIdsCmd(ec, marketId, endDate);//this is almost run daily to detect new stocks listed
+				curIds = mi.getStockIds();
+				List<String> preIds = new ArrayList<String>();
+				if (lmi!=null)
+					preIds = lmi.getStockIds();
 				//get the delta
 				deltaIds = new ArrayList<String>();
 				deltaIds.addAll(curIds);
 				deltaIds.removeAll(preIds);
-				
+				//get last run date
 				if (startDate!=null){
 					lastRunDate = startDate;
 				}else{
-					//get last all cmd run status, last run date
-					CmdStatus preAllCmdRunCS = CmdStatus.getCmdStatus(dsm, prevMarketId, AllCmdRun_STATUS);
-					if (preAllCmdRunCS==null){//last time AllCmdRun-CmdStatus failed to generate, from last Id-CmdStatus
-						logger.warn("System corrupted, AllCmdStatus is not generated for that market. Starting from last stock-id CmdStatus time!" + sdf.format(mcs.getId().getCreateTime()));
-						lastRunDate = mcs.getId().getCreateTime();
+					if (lmi!=null){
+						lastRunDate = lmi.getId().getEndDate();
 					}else{
-						lastRunDate = preAllCmdRunCS.getId().getCreateTime();
+						lastRunDate = ec.getMarketStartDate();
 					}
 				}
-				logger.info(String.format("market %s has org size: %d, lastRunDate: %s", marketId, preIds.size(), lastRunDate));
+				logger.info(String.format("market %s: %d at %s, %d at %s", marketId, preIds.size(), lastRunDate, curIds.size(), endDate));
 				if (deltaIds.size()>0){
-					logger.info(String.format("market %s has delta size %d.", marketId, deltaIds.size()));
-					//has new delta market, let's create another 2 markets
-					dsm.addUpdateCrawledItem(ciIds, null);////hbase persistence for curMarket
-					
-					String deltaMarketId = marketId + idKeySep + strEndDate + idKeySep + DELTA_NAME; //delta market
-					CrawledItem ciDelta = new CrawledItem(CrawledItem.CRAWLITEM_TYPE, "default", 
-							new CrawledItemId(deltaMarketId, sc.getStockIdsCmd(), endDate));
-					ciDelta.addParam(KEY_IDS, deltaIds);
-					dsm.addUpdateCrawledItem(ciDelta, null);
-
-					//generate hdfs file delta market: raw/[marketId]_[endDate]/storeid/data
-					String fileName = String.format("raw/%s_%s/%s/data", this.getMarketId(), sdf.format(this.getEndDate()), sc.getStockIdsCmd());
-					addCsvValue(ciDelta);
-					hdfsDsm.addCrawledItem(ciDelta, null, fileName);//hdfs persistence for curMarket
-					
-					//update the market-command-status
-					mcs.getId().setCreateTime(endDate);
-					dsm.addUpdateCrawledItem(mcs, null);
-					
-					//apply static cmds (null, endDate) for delta market
-					cmdStatusList.addAll(runCmdGroup(deltaMarketId, lastRunDate, endDate, groupType, 
+					//run static crawl cmds for delta market
+					cmdStatusList.addAll(runCmdGroup(marketId, deltaIds, lastRunDate, endDate, groupType, 
 							CrawlCmdType.nondynamic, includeCmds, excludeCmds));
-				}else{
-					logger.info("no delta market, so curMarket is prevMarket");
-					curMarketId = prevMarketId;//so that prevMarketId's allCmdRun status can be updated
+					//store the static crawl cmd results into meta data store
 				}
-				logger.info(String.format("run dynamic cmd for market %s from %s to %s", prevMarketId, lastRunDate, endDate));
-				cmdStatusList.addAll(runCmdGroup(curMarketId, lastRunDate, endDate, groupType, 
-						CrawlCmdType.dynamic, includeCmds, excludeCmds)); //dynamic part
 			}
-		}else{
-			ciIds = run_browse_idlist(marketId, endDate);
-			cmdStatusList.addAll(runFirstTime(sc, ciIds, curMarketId, groupType, includeCmds, excludeCmds));
 		}
-		CmdStatus allCmdRunStatus = new CmdStatus(curMarketId, AllCmdRun_STATUS, endDate, true, sc.getSdf());
-		dsm.addUpdateCrawledItem(allCmdRunStatus, null);
+		logger.info(String.format("run dynamic cmd for market %s from %s to %s", marketId, lastRunDate, endDate));
+		cmdStatusList.addAll(runCmdGroup(marketId, curIds, lastRunDate, endDate, groupType, 
+				CrawlCmdType.dynamic, includeCmds, excludeCmds)); //dynamic part
 		return cmdStatusList;
 	}
 	
 	//param is null:all, startwith -:exclude these cmd, startwith +:only include these cmd
 	public String[] postprocess(String param){
-		ETLConfig sc = ETLConfig.getETLConfig(baseMarketId);
+		ETLConfig sc = ETLConfig.getETLConfig(marketId);
 		String[] excludeCmds = null;
 		String[] includeCmds = null;
 		if (param!=null){
@@ -595,7 +549,7 @@ public abstract class StockBase extends TestBase{
 						continue;
 					}
 				}
-				String[] jobIdsOneCmd = t.launch(this.propFile, baseMarketId, cconf, datePart, new String[]{cmd});
+				String[] jobIdsOneCmd = t.launch(this.propFile, marketId, cconf, datePart, new String[]{cmd});
 				if (jobIdsOneCmd!=null){
 					jobIds.addAll(Arrays.asList(jobIdsOneCmd));
 				}
@@ -607,15 +561,15 @@ public abstract class StockBase extends TestBase{
 	
 	//param is null:all, startwith -:exclude these cmd, startwith +:only include these cmd
 	public String[] run_merge(String param){
-		ETLConfig sc = ETLConfig.getETLConfig(baseMarketId);
+		ETLConfig sc = ETLConfig.getETLConfig(marketId);
 		String datePart = sc.getDatePart(marketId, startDate, endDate);
-		return MergeTask.launch(sc, this.propFile, this.baseMarketId, cconf, datePart, param, true);
+		return MergeTask.launch(sc, this.propFile, this.marketId, cconf, datePart, param, true);
 	}
 	
 	public static String dumpDir = "/data/cydata/stock/merge/";
 	//param is null:all, startwith -:exclude these cmd, startwith +:only include these cmd
 	public void dumpFiles(String param){
-		ETLConfig sc = ETLConfig.getETLConfig(baseMarketId);
+		ETLConfig sc = ETLConfig.getETLConfig(marketId);
 		String[] excludeCmds = new String[]{};
 		String[] includeCmds = null;
 		if (param!=null){
@@ -657,20 +611,20 @@ public abstract class StockBase extends TestBase{
 		}
 		String strEndDate = sdf.format(endDate);
 		String localDirRoot = dumpDir + strEndDate;
-		String[] includeFolders = new String[]{this.baseMarketId};
+		String[] includeFolders = new String[]{this.marketId};
 		if (includeCmds!=null){
 			includeFolders = includeCmds;
 		}
-		LoadDBDataTask.launch(baseMarketId, strEndDate, cconf.getSmalldbconf(), 20, localDirRoot, includeFolders, excludeCmds);
+		LoadDBDataTask.launch(marketId, strEndDate, cconf.getBigdbconf(), 20, localDirRoot, includeFolders, excludeCmds);
 	}
 	
 	public void postImport(){
-		ETLConfig sc = ETLConfig.getETLConfig(baseMarketId);
+		ETLConfig sc = ETLConfig.getETLConfig(marketId);
 		String postImportFileName = sc.postImportSql();
 		try{
 			if (postImportFileName!=null){
 				InputStreamReader br = new InputStreamReader(new FileInputStream(new File(String.format("/data/reminder/sql/%s", postImportFileName))), "UTF-8");
-				Connection con = SqlUtil.getConnection(this.getCconf().getSmalldbconf());
+				Connection con = SqlUtil.getConnection(this.getCconf().getBigdbconf());
 				ScriptRunner sr = new ScriptRunner(con, false, false);
 				sr.runScript(br);
 				SqlUtil.closeResources(con, null);
@@ -764,7 +718,7 @@ public abstract class StockBase extends TestBase{
 	}
 
 	public List<CmdStatus> runSpecial(String method, String param){
-		ETLConfig sc = ETLConfig.getETLConfig(baseMarketId);
+		ETLConfig sc = ETLConfig.getETLConfig(marketId);
 		Method m;
 		try {
 			boolean noParam=true;
@@ -789,7 +743,7 @@ public abstract class StockBase extends TestBase{
 					jobIds = (String[]) m.invoke(this, param);
 				}
 				if (jobIds!=null){
-					CmdStatus cs = new CmdStatus(marketId, method, endDate, false, sc.getSdf());
+					CmdStatus cs = new CmdStatus(marketId, method, endDate);
 					for (String jobId:jobIds){
 						if (jobId!=null){
 							cs.getJsMap().put(jobId, 4);//PREPARE
@@ -822,9 +776,6 @@ public abstract class StockBase extends TestBase{
 	public CrawlConf getCconf(){
 		return this.cconf;
 	}
-	public DataStoreManager getDsm(){
-		return dsm;
-	}
 	public String getMarketId() {
 		return marketId;
 	}
@@ -848,11 +799,5 @@ public abstract class StockBase extends TestBase{
 	}
 	public void setStartDate(Date startDate) {
 		this.startDate = startDate;
-	}
-	public String getBaseMarketId() {
-		return baseMarketId;
-	}
-	public void setBaseMarketId(String baseMarketId) {
-		this.baseMarketId = baseMarketId;
 	}
 }

@@ -1,0 +1,85 @@
+{
+  "@class" : "flow",
+  "name" : "sflow",
+  "outlets" : [ ],
+  "nodes" : [ 
+  {
+    "@class" : "start",
+    "name" : "start",
+    "outlets" : [ ],
+    "duration" : 500,
+    "inLets" : [ ]
+  }, {
+    "@class" : "action",
+    "name" : "genTasks",
+    "outlets" : [ {
+      "name" : "1",
+      "dataName" : "tasks.dataset"
+    } ],
+    "addArgs" : [ ],
+    "inLets" : [ {
+      "name" : "0",
+      "dataName" : "gentasks.properties"
+    } ],
+    "cmd.class" : "org.cldutil.stock.etl.cmd.GenCrawlTaskCmd",
+    "exe.type" : "mr"
+  }, {
+    "@class" : "action",
+    "name" : "crawlCmd",
+    "outlets" : [ {
+      "name" : "1",
+      "dataName" : "crawled.dataset"
+    } ],
+    "addArgs" : [ ],
+    "inLets" : [ {
+      "name" : "0",
+      "dataName" : "tasks.dataset"
+    } ],
+    "cmd.class" : "org.cldutil.taskmgr.bdapcmd.ExeCldTaskCmd",
+    "exe.type" : "mr",
+    "sys.xmlinput.row.max.number" : "1000",
+    "sys.mapreduce.map.memory.mb" : "2048",
+    "sys.mapreduce.map.java.opts" : "-Xmx1800m",
+    "sys.mapreduce.reduce.memory.mb" : "2048",
+    "sys.mapreduce.reduce.java.opts" : "-Xmx1800m"
+  }, {
+    "@class" : "end",
+    "name" : "end",
+    "outlets" : [ ],
+    "inLets" : [ ]
+  }],
+  "links" : [ 
+  {
+    "fromNodeName" : "start",
+    "toNodeName" : "genTasks",
+    "linkType" : "success"
+  }, {
+    "fromNodeName" : "genTasks",
+    "toNodeName" : "crawlCmd",
+    "linkType" : "success"
+  }, {
+    "fromNodeName" : "crawlCmd",
+    "toNodeName" : "end",
+    "linkType" : "success"
+  }],
+  "data" : [ 
+  {
+    "name" : "gentasks.properties",
+    "location" : "/sflow/lib/gentasks.properties",
+    "dataFormat" : "Line",
+    "recordType" : "Value",
+    "instance" : false
+  }, {
+    "name" : "tasks.dataset",
+    "location" : "/sflow/tasks",
+    "dataFormat" : "Text",
+    "recordType" : "Value"
+  }, {
+    "name" : "crawled.dataset",
+    "location" : "/sflow/crawled/",
+    "dataFormat" : "Text",
+    "recordType" : "KeyValue"
+  } ],
+  "inLets" : [ ],
+  "wfName" : "sflow"
+}

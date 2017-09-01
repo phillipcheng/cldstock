@@ -38,6 +38,11 @@
 			<artifactId>org.cldutil.util</artifactId>
 			<version>1.0.0</version>
 		</dependency>
+		<dependency>
+			<groupId>org.cldutil.stock</groupId>
+			<artifactId>org.cldutil.stock.persist</artifactId>
+			<version>1.0.0</version>
+		</dependency>
 	</dependencies>
 	
 	<build>

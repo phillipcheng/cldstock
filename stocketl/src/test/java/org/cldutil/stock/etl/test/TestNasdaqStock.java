@@ -9,6 +9,7 @@ import org.cldutil.util.jdbc.SqlUtil;
 import org.cldutil.stock.common.StockConfig;
 import org.cldutil.stock.common.StockUtil;
 import org.cldutil.stock.etl.StockBase;
+import org.cldutil.stock.etl.base.ETLConfig;
 import org.cldutil.stock.etl.base.NasdaqETLConfig;
 import org.cldutil.stock.etl.base.NasdaqStockBase;
 import org.cldutil.stock.mapper.ext.NasdaqSplitJDBCMapper;
@@ -20,8 +21,11 @@ public class TestNasdaqStock {
 	private static Logger logger =  LogManager.getLogger(TestNasdaqStock.class);
 	
 	public static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+	
 	private static String START_DATE = "2016-01-01";
 	private static String END_DATE = "2017-08-01";
+	private static String SMALL_END_DATE="2001-01-01";
+	
 	private static Date startDate=null;
 	private static Date endDate = null;
 	static{
@@ -39,6 +43,7 @@ public class TestNasdaqStock {
 	
 	private NasdaqStockBase nsb;
 	private StockConfig sc;
+	private ETLConfig ec;
 
 	public TestNasdaqStock(){
 		super();
@@ -48,51 +53,36 @@ public class TestNasdaqStock {
 	public void setUp()throws Exception{
 		nsb = new NasdaqStockBase(propFile, marketId, startDate, endDate);
 		sc = StockUtil.getStockConfig(StockUtil.NASDAQ_STOCK_BASE);
+		ec = ETLConfig.getETLConfig(StockUtil.NASDAQ_STOCK_BASE);
 	}
 	
+	//static commands
 	@Test
 	public void testInitTestMarket() throws Exception{
-		nsb.getDsm().addUpdateCrawledItem(nsb.run_browse_idlist(this.marketId, sdf.parse(END_DATE)), null);
-	}
-	@Test
-	public void testIdsCmd() throws Exception{
-		nsb.runCmd(NasdaqETLConfig.STOCK_IDS, NasdaqETLConfig.MarketId_NASDAQ, null, END_DATE);
-	}
-	@Test
-	public void testRunAllCmd() throws Exception{
-		nsb.setStartDate(null);
-		nsb.setEndDate(NasdaqETLConfig.date_Test_END_D1);
-		nsb.runAllCmd(null);
-		
-		nsb.setStartDate(null);
-		nsb.setEndDate(NasdaqETLConfig.date_Test_END_D3);
-		nsb.runAllCmd(null);
-		
+		nsb.runIdsCmd(ec, NasdaqETLConfig.MarketId_NASDAQ_Test, sdf.parse(END_DATE));
+		nsb.runIdsCmd(ec, NasdaqETLConfig.MarketId_NASDAQ_Test, sdf.parse(SMALL_END_DATE));
 	}
 	
 	@Test
-	public void testBrowseIdlist() throws Exception{
-		nsb.run_browse_idlist(NasdaqETLConfig.MarketId_NASDAQ, sdf.parse("2015-08-02"));
+	public void testIdsCmd() throws Exception{
+		nsb.runIdsCmd(ec, StockUtil.NASDAQ_STOCK_BASE, sdf.parse(END_DATE));
 	}
 	
 	@Test
 	public void testIPO() throws Exception{
-		nsb.runCmd(NasdaqETLConfig.STOCK_IPO, marketId, null, "2001-10-09");
+		nsb.runCmd(NasdaqETLConfig.STOCK_IPO, marketId, null, END_DATE);
 	}
-	@Test
-	public void testCmd_QuoteFq() throws Exception{
-		nsb.runCmd(NasdaqETLConfig.QUOTE_FQ_HISTORY, marketId, null, "2015-11-18");
-	}
+	//by stock cmds
 	@Test
 	public void testCmd_QuoteHistory(){
-		nsb.runCmd(NasdaqETLConfig.QUOTE_HISTORY, marketId, null, "2015-11-19");
+		nsb.runCmd(NasdaqETLConfig.QUOTE_HISTORY, marketId, null, END_DATE);
 	}
 	@Test
 	public void testPostProcess() throws Exception{
 		nsb.setEndDate(sdf.parse("2015-10-09"));
 		nsb.postprocess(null);
 	}
-	//daily
+	//by stock and daily
 	@Test
 	public void testCmd_QuoteTick(){
 		nsb.runCmd(NasdaqETLConfig.QUOTE_TICK, marketId, null, null);
@@ -106,6 +96,7 @@ public class TestNasdaqStock {
 	public void testCmd_QuoteAfterHours(){
 		nsb.runCmd(NasdaqETLConfig.QUOTE_AFTERHOURS, marketId, null, null);
 	}
+	//by stock and quarterly
 	@Test
 	public void testCmd_HolderSummary(){
 		nsb.runCmd(NasdaqETLConfig.HOLDING_SUMMARY, marketId, null, sdf.format(sc.getLatestOpenMarketDate(new Date())));
@@ -188,13 +179,25 @@ public class TestNasdaqStock {
 		String[] csvs = nsb.runCmdHadoopless(NasdaqETLConfig.ISSUE_UPCOMING_SPLIT, marketId, "2011-08-01", 
 				sdf.format(sc.getLatestOpenMarketDate(new Date())));
 		logger.info(Arrays.toString(csvs));
-		SqlUtil.insertCsvs(nsb.getCconf().getSmalldbconf(), NasdaqSplitJDBCMapper.getInstance(), csvs);
+		SqlUtil.insertCsvs(nsb.getCconf().getMetadbconf(), NasdaqSplitJDBCMapper.getInstance(), csvs);
 	}
 	@Test
 	public void testCmd_Upcoming_Dividend_Hadoopless(){
 		String[] csvs = nsb.runCmdHadoopless(NasdaqETLConfig.ISSUE_UPCOMING_DIVIDEND, marketId, "2015-12-24", 
 				sdf.format(sc.getLatestOpenMarketDate(new Date())));
 		logger.info(Arrays.toString(csvs));
-		SqlUtil.insertCsvs(nsb.getCconf().getSmalldbconf(), NasdaqUpcomingDivMapper.getInstance(), csvs);
+		SqlUtil.insertCsvs(nsb.getCconf().getMetadbconf(), NasdaqUpcomingDivMapper.getInstance(), csvs);
+	}
+	
+	//incremental crawl
+	@Test
+	public void testRunAllCmd() throws Exception{
+		nsb.setStartDate(null);
+		nsb.setEndDate(NasdaqETLConfig.date_Test_END_D1);
+		nsb.runAllCmd(null);
+		
+		nsb.setStartDate(null);
+		nsb.setEndDate(NasdaqETLConfig.date_Test_END_D3);
+		nsb.runAllCmd(null);
 	}
 }

@@ -4,8 +4,7 @@
 	<PrdTask tryPattern="false">
 		<baseBrowseTask enableJS="true" dsm="nothing" taskName="stock-list" mbMemoryNeeded="512">
 			<param name="marketId"/>
-			<param name="baseMarketId"/>
-			<param name="storeId" value="baseMarketId + '-stock-ids'" type="expression"/>
+			<param name="storeId" value="marketId + '-stock-ids'" type="expression"/>
 			<startUrl value="http://money.finance.sina.com.cn/mkt/#[marketId]"/>
 			<userAttribute name="ids">
 				<value value="//div[@id='tbl_wrap']/table[1]/tbody/tr[@style='']/th[1]/a/text()" toType="externalList"/>

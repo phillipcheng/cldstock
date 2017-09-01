@@ -11,7 +11,6 @@ import org.cldutil.util.DateTimeUtil;
 import org.cldutil.stock.common.StockConfig;
 import org.cldutil.stock.common.StockUtil;
 import org.cldutil.stock.config.NasdaqStockConfig;
-import org.cldutil.stock.config.SinaStockConfig;
 import org.cldutil.stock.etl.base.NasdaqETLConfig;
 import org.cldutil.stock.etl.base.NasdaqStockBase;
 import org.cldutil.stock.etl.base.SinaETLConfig;
@@ -30,7 +29,6 @@ public class StockCrawlJob implements Job {
 	
 	@Override
 	public void execute(JobExecutionContext context) throws JobExecutionException {
-		runGuard.put(StockCrawlScheduler.NASDAQ_MARKET_CRON_FQ, true);
 		runGuard.put(StockCrawlScheduler.NASDAQ_MARKET_CRON_QH, true);
 		String triggerName=context.getTrigger().getKey().getName();
 		String triggerGrpName = context.getTrigger().getKey().getGroup();
@@ -64,21 +62,11 @@ public class StockCrawlJob implements Job {
 				if (triggerGrpName.equals(StockCrawlScheduler.NASDAQ_MARKET_CRON_COMMON)){//triggered at the 19PM today
 					//enable all
 					sb.setEndDate(tomorrow);
-					String params = String.format("cmd:|%s|%s", NasdaqETLConfig.QUOTE_FQ_HISTORY, NasdaqETLConfig.QUOTE_HISTORY);
-					sb.updateAll(params);
-				}else if (triggerGrpName.equals(StockCrawlScheduler.NASDAQ_MARKET_CRON_FQ)){//triggered at 0AM
-					sb.setEndDate(today);
-					String params = String.format("cmd:+%s", NasdaqETLConfig.QUOTE_FQ_HISTORY);
-					while (!sb.fqReady(yesterday) && runGuard.get(triggerGrpName)){
-						Thread.sleep(20000);
-					}
-					Thread.sleep(20000);
-					runGuard.put(StockCrawlScheduler.NASDAQ_MARKET_CRON_QH, false);//no need qh
+					String params = String.format("cmd:|%s", NasdaqETLConfig.QUOTE_HISTORY);
 					sb.updateAll(params);
 				}else if (triggerGrpName.equals(StockCrawlScheduler.NASDAQ_MARKET_CRON_QH)){//triggered at 6AM
 					if (runGuard.get(StockCrawlScheduler.NASDAQ_MARKET_CRON_QH)!=null && runGuard.get(StockCrawlScheduler.NASDAQ_MARKET_CRON_QH)==true){
-						//stop fq
-						runGuard.put(StockCrawlScheduler.NASDAQ_MARKET_CRON_FQ, false);
+						//
 						sb.setEndDate(today);
 						String params = String.format("cmd:+%s", NasdaqETLConfig.QUOTE_HISTORY);
 						sb.updateAll(params);

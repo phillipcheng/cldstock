@@ -15,7 +15,22 @@
 	<dependencies>
 		<dependency>
 			<groupId>org.cldutil</groupId>
+			<artifactId>org.cldutil.util</artifactId>
+			<version>1.0.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.cldutil</groupId>
 			<artifactId>org.cldutil.hadooputil</artifactId>
+			<version>1.0.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.cldutil</groupId>
+			<artifactId>org.cldutil.datastore</artifactId>
+			<version>1.0.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.cldutil</groupId>
+			<artifactId>org.cldutil.taskmgr</artifactId>
 			<version>1.0.0</version>
 		</dependency>
 		<dependency>

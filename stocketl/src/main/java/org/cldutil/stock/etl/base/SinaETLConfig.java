@@ -8,6 +8,7 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.cldutil.util.ListUtil;
+import org.cldutil.util.jdbc.JDBCMapper;
 import org.cldutil.stock.etl.CrawlCmdGroupType;
 import org.cldutil.stock.etl.LaunchableTask;
 import org.cldutil.stock.etl.task.sina.TradeDetailPostProcessTask;
@@ -394,5 +395,11 @@ public class SinaETLConfig extends ETLConfig {
 	@Override
 	public String[] getUpdateAllCmds() {
 		return new String[]{};
+	}
+
+	@Override
+	public JDBCMapper getJDBCMapper(String cmd) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

@@ -213,4 +213,10 @@ public class HKETLConfig extends ETLConfig{
 	public String[] getUpdateAllCmds() {
 		return new String[]{QUOTE_FQ_HISTORY};
 	}
+
+	@Override
+	public JDBCMapper getJDBCMapper(String cmd) {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }

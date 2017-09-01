@@ -99,17 +99,17 @@
 			<dependency>
 		        <groupId>org.hibernate</groupId>
 		        <artifactId>hibernate-validator</artifactId>
-		        <version>4.2.0.Final</version>
+		        <version>6.0.2.Final</version>
       		</dependency>
       		<dependency>
 		        <groupId>org.hibernate</groupId>
 		        <artifactId>hibernate-core</artifactId>
-		        <version>3.6.5.Final</version>
+		        <version>5.2.10.Final</version>
 	  		</dependency>
 	  		<dependency>
       			<groupId>org.hibernate</groupId>
       			<artifactId>hibernate-entitymanager</artifactId>
-		        <version>3.6.5.Final</version>
+		        <version>5.2.10.Final</version>
     		</dependency>
     		<dependency>
 				<groupId>javassist</groupId>
@@ -216,6 +216,35 @@
 				<groupId>mysql</groupId>
 				<artifactId>mysql-connector-java</artifactId>
 				<version>5.1.36</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.spark</groupId>
+				<artifactId>spark-core_2.11</artifactId>
+				<version>2.1.0</version>
+				<scope>provided</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.spark</groupId>
+				<artifactId>spark-yarn_2.11</artifactId>
+				<version>2.1.0</version>
+				<scope>provided</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.spark</groupId>
+				<artifactId>spark-sql_2.11</artifactId>
+				<version>2.1.0</version>
+				<scope>provided</scope>
+			</dependency>
+			<dependency>
+			  <groupId>org.apache.spark</groupId>
+			  <artifactId>spark-streaming_2.11</artifactId>
+			  <version>2.1.0</version>
+			  <scope>provided</scope>
+			</dependency>
+			<dependency>
+			    <groupId>javax.validation</groupId>
+			    <artifactId>validation-api</artifactId>
+			    <version>2.0.0.Final</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>

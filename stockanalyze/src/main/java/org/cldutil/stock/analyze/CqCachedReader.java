@@ -11,6 +11,11 @@ import org.cldutil.util.FileDataMapper;
 import org.cldutil.stock.common.CandleQuote;
 import org.cldutil.stock.common.TradeHour;
 
+/**
+ * Candle Quote Cached Reader
+ * @author chengyi
+ *
+ */
 public class CqCachedReader {
 	private static Logger logger =  LogManager.getLogger(CqCachedReader.class);
 	private BufferedReader br;
